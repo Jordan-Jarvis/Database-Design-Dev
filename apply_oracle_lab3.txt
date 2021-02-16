@@ -1,0 +1,520 @@
+SQL> -- ------------------------------------------------------------------
+SQL> --  Enter Lab #3 Steps:
+SQL> -- ------------------------------------------------------------------
+SQL> 
+SQL> -- ======================================================================
+SQL> --  Step #1
+SQL> --  -------
+SQL> --   Write a query that returns the count of rows in the member table.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: This does not use a WHERE clause.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: The following header for displaying the data.
+SQL> --
+SQL> --  COL total_rows 	 FORMAT 999  HEADING "Total|Rows"
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Anticipated Results
+SQL> -- ----------------------------------------------------------------------
+SQL> --   Total
+SQL> --   Rows
+SQL> --   -----
+SQL> --       8
+SQL> --
+SQL> --   1 row selected.
+SQL> -- ======================================================================
+SQL> COL total_rows	     FORMAT 999  HEADING "Total|Rows"
+SQL> select count(member_id) as total_rows
+  2  from member;
+
+Total                                                                           
+ Rows                                                                           
+-----                                                                           
+    8                                                                           
+
+1 row selected.
+
+SQL> 
+SQL> 
+SQL> -- ======================================================================
+SQL> --  Step #2
+SQL> --  -------
+SQL> --   Write a query that returns the last_name and count of rows that
+SQL> --   share the last_name value in alphabetically ascending order.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: This does not use a WHERE clause but uses a GROUP BY clause.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: The following header for displaying the data.
+SQL> --
+SQL> --  COL last_name	  FORMAT A12  HEADING "Last Name"
+SQL> --  COL total_rows   FORMAT 999  HEADING "Total|Rows"
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Anticipated Results
+SQL> -- ----------------------------------------------------------------------
+SQL> --   Last Name    TOTAL_NAMES
+SQL> --   ------------ -----------
+SQL> --   Clinton		 1
+SQL> --   Gretelz		 1
+SQL> --   Moss			 1
+SQL> --   Royal 		 1
+SQL> --   Smith 		 1
+SQL> --   Sweeney		 3
+SQL> --   Vizquel		 2
+SQL> --   Winn			 2
+SQL> --
+SQL> --   8 rows selected.
+SQL> -- ======================================================================
+SQL> 
+SQL> COL last_name    FORMAT A12  HEADING "Last Name"
+SQL> COL total_rows   FORMAT 999  HEADING "Total|Rows"
+SQL> SELECT
+  2  	 last_name,
+  3  	 COUNT(*)
+  4  FROM
+  5  	 contact
+  6  GROUP BY
+  7  	 last_name
+  8  order by last_name;
+
+Last Name      COUNT(*)                                                         
+------------ ----------                                                         
+Clinton               1                                                         
+Gretelz               1                                                         
+Moss                  1                                                         
+Royal                 1                                                         
+Smith                 1                                                         
+Sweeney               3                                                         
+Vizquel               2                                                         
+Winn                  2                                                         
+
+8 rows selected.
+
+SQL> 
+SQL> -- ======================================================================
+SQL> --  Step #3
+SQL> --  -------
+SQL> --   Write a query that returns the item_rating and the total_count of
+SQL> --   each item_rating value by ascending order where the item_rating is
+SQL> --   'G', 'PG', and 'NR'.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: This does use WHERE, GROUP BY, and ORDER BY clauses.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: The following header for displaying the data.
+SQL> --
+SQL> --  COL item_rating    FORMAT A12	HEADING "Item|Rating"
+SQL> --  COL total_count    FORMAT 999	HEADING "Total|Count"
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Anticipated Results
+SQL> -- ----------------------------------------------------------------------
+SQL> --   Item	       Total
+SQL> --   Rating       Count
+SQL> --   ------------ -----
+SQL> --   G		   4
+SQL> --   NR		   1
+SQL> --   PG		   7
+SQL> --
+SQL> --   3 rows selected.
+SQL> -- ======================================================================
+SQL> COL item_rating	FORMAT A12  HEADING "Item|Rating"
+SQL> COL total_count	FORMAT 999  HEADING "Total|Count"
+SQL> select item_rating, count(*) as total_count
+  2  from item
+  3  where item_rating = 'G' or item_rating = 'NR' or item_rating = 'PG'
+  4  group by item_rating
+  5  order by item_rating;
+
+Item         Total                                                              
+Rating       Count                                                              
+------------ -----                                                              
+G                4                                                              
+NR               1                                                              
+PG               7                                                              
+
+3 rows selected.
+
+SQL> 
+SQL> 
+SQL> -- ======================================================================
+SQL> --  Step #4
+SQL> --  -------
+SQL> --   Write a query that returns the account_number and credit_card_number
+SQL> --   from the member table and the last_name and count of unique last_name
+SQL> --   values from the contact table. Use an inner join between the member
+SQL> --   and contact table in the FROM clause by qualifying the member_id
+SQL> --   columns in join condition of an ON subclause. The results set should
+SQL> --   all have more than one value of each last name in the non-aggregated
+SQL> --   result set, and sorted in ascending last_name order.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: This does not use a WHERE clause but uses GROUP BY, HAVING,
+SQL> --        and ORDER BY clauses.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: The following header for displaying the data.
+SQL> --
+SQL> --  COL account_number	 FORMAT A10  HEADING "Account|Number"
+SQL> --  COL credit_card_number  FORMAT A19  HEADING "Credit|Card|Number"
+SQL> --  COL last_name		 FORMAT A12  HEADING "Last Name"
+SQL> --  COL total_count	 FORMAT 999  HEADING "Total|Count"
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Anticipated Results
+SQL> -- ----------------------------------------------------------------------
+SQL> -- 			  Credit
+SQL> -- 	       Account	  Card		      Total
+SQL> --   Last Name    Number	  Number	      Count
+SQL> --   ------------ ---------- ------------------- -----
+SQL> --   Sweeney      B293-71447 3333-4444-5555-6666	  3
+SQL> --   Vizquel      B293-71446 2222-3333-4444-5555	  2
+SQL> --   Winn	       B293-71445 1111-2222-3333-4444	  2
+SQL> --
+SQL> --   3 rows selected.
+SQL> -- ======================================================================
+SQL> COL account_number      FORMAT A10  HEADING "Account|Number"
+SQL> COL credit_card_number  FORMAT A19  HEADING "Credit|Card|Number"
+SQL> COL last_name	     FORMAT A12  HEADING "Last Name"
+SQL> COL total_count	     FORMAT 999  HEADING "Total|Count"
+SQL> select c.last_name, m.account_number, m.credit_card_number, count(last_name) as total_count
+  2  from member m join contact c on m.member_id = c.member_id
+  3  group by c.last_name, m.account_number, m.credit_card_number
+  4  HAVING count(c.last_name) > 1
+  5  order by last_name;
+
+                        Credit                                                  
+             Account    Card                Total                               
+Last Name    Number     Number              Count                               
+------------ ---------- ------------------- -----                               
+Sweeney      B293-71447 3333-4444-5555-6666     3                               
+Vizquel      B293-71446 2222-3333-4444-5555     2                               
+Winn         B293-71445 1111-2222-3333-4444     2                               
+
+3 rows selected.
+
+SQL> -- ======================================================================
+SQL> --  Step #5
+SQL> --  -------
+SQL> --   Write a query that returns the last_name from the contact table
+SQL> --   and the city and state_province columns from the address table.
+SQL> --   Use an inner join with the using subclause on the contact_id
+SQL> --   column that is shared between the tables. Filter the result set
+SQL> --   by checking for a state_province value of only a case sensitive
+SQL> --   'Utah', and return the set in ascending order based on the last_name
+SQL> --   values in the SELECT-list.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: This does use WHERE and ORDER BY clauses.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: The following header for displaying the data.
+SQL> --
+SQL> --  COL last_name	     FORMAT A12  HEADING "Last Name"
+SQL> --  COL city	     FORMAT A12  HEADING "City"
+SQL> --  COL state_province  FORMAT A8	 HEADING "State|Province"
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Anticipated Results
+SQL> -- ----------------------------------------------------------------------
+SQL> -- 			    State
+SQL> --   Last Name    City	    Province
+SQL> --   ------------ ------------ --------
+SQL> --   Clinton      Provo	    Utah
+SQL> --   Gretelz      Provo	    Utah
+SQL> --   Moss	       Provo	    Utah
+SQL> --   Royal        Provo	    Utah
+SQL> --   Smith        Spanish Fork Utah
+SQL> --
+SQL> --   5 rows selected.
+SQL> -- ======================================================================
+SQL> COL last_name	 FORMAT A12  HEADING "Last Name"
+SQL> COL city		 FORMAT A12  HEADING "City"
+SQL> COL state_province  FORMAT A8   HEADING "State|Province"
+SQL> select c.last_name, a.city, a.state_province
+  2  FROM contact c JOIN address a
+  3  USING (contact_id, contact_id)
+  4  where a.state_province = 'Utah'
+  5  order by c.last_name
+  6  ;
+
+                          State                                                 
+Last Name    City         Province                                              
+------------ ------------ --------                                              
+Clinton      Provo        Utah                                                  
+Gretelz      Provo        Utah                                                  
+Moss         Provo        Utah                                                  
+Royal        Provo        Utah                                                  
+Smith        Spanish Fork Utah                                                  
+
+5 rows selected.
+
+SQL> -- ======================================================================
+SQL> --  Step #6
+SQL> --  -------
+SQL> --   Write a query that returns the last_name from the contact table
+SQL> --   and the area_code and telephone_number columns from the telephone
+SQL> --   table. Use an inner join with the using subclause on the contact_id
+SQL> --   column that is shared between the tables. Filter the result set
+SQL> --   by checking for an area_code value of '801', and return the set in
+SQL> --   ascending order based on the last_name values in the SELECT-list.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: This uses WHERE and ORDER BY clauses.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: The following header for displaying the data.
+SQL> --
+SQL> --  COL last_name	FORMAT A12  HEADING "Last Name"
+SQL> --  COL telephone	FORMAT A14  HEADING "Telephone"
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Anticipated Results
+SQL> -- ----------------------------------------------------------------------
+SQL> --   Last Name    TELEPHONE
+SQL> --   ------------ -------------------
+SQL> --   Clinton      (801) 423-1234
+SQL> --   Gretelz      (801) 423-1236
+SQL> --   Moss	       (801) 423-1235
+SQL> --   Royal        (801) 423-1237
+SQL> --   Smith        (801) 423-1238
+SQL> --
+SQL> --   5 rows selected.
+SQL> -- ======================================================================
+SQL> COL last_name  FORMAT A12	HEADING "Last Name"
+SQL> COL telephone  FORMAT A14	HEADING "Telephone"
+SQL> select c.last_name, '(' || t.area_code || ') ' ||	t.telephone_number as telephone
+  2  from contact c join telephone t using (contact_id, contact_id)
+  3  where t.area_code = '801'
+  4  order by c.last_name;
+
+Last Name    Telephone                                                          
+------------ --------------                                                     
+Clinton      (801) 423-1234                                                     
+Gretelz      (801) 423-1236                                                     
+Moss         (801) 423-1235                                                     
+Royal        (801) 423-1237                                                     
+Smith        (801) 423-1238                                                     
+
+5 rows selected.
+
+SQL> 
+SQL> 
+SQL> -- ======================================================================
+SQL> --  Step #7
+SQL> --  -------
+SQL> --   Write a query that returns the following four columns from the
+SQL> --   common_lookup table, which is a table of tables:
+SQL> --     - common_lookup_id
+SQL> --     - common_lookup_context
+SQL> --     - common_lookup_type
+SQL> --     - common_lookup_meaning
+SQL> --   Filter the result set by checking for a common_lookup_context value
+SQL> --   of an uppercase 'ITEM' string and a common_lookup_type value that is
+SQL> --   an uppercase string of either 'DVD_FULL_SCREEN', 'DVD_WIDE_SCREEN',
+SQL> --   or 'BLU-RAY'.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: This uses a WHERE clause.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: The following header for displaying the data.
+SQL> --
+SQL> --  COL common_lookup_id	    FORMAT 9999  HEADING "Common|Lookup ID"
+SQL> --  COL common_lookup_context  FORMAT A30	 HEADING "Common|Lookup Context"
+SQL> --  COL common_lookup_type     FORMAT A16	 HEADING "Common|Lookup Type"
+SQL> --  COL common_lookup_meaning  FORMAT A16	 HEADING "Common|Lookup Meaning"
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Anticipated Results
+SQL> -- ----------------------------------------------------------------------
+SQL> --      Common Common	   Common	    Common
+SQL> --   Lookup ID Lookup Context Lookup Type	    Lookup Meaning
+SQL> --   --------- -------------- ---------------- ----------------
+SQL> --        1010 ITEM	   DVD_FULL_SCREEN  DVD: Full Screen
+SQL> --        1011 ITEM	   DVD_WIDE_SCREEN  DVD: Wide Screen
+SQL> --        1015 ITEM	   BLU-RAY	    Blu-ray
+SQL> --
+SQL> --   3 rows selected.
+SQL> -- ======================================================================
+SQL> COL common_lookup_id	FORMAT 9999  HEADING "Common|Lookup ID"
+SQL> COL common_lookup_context	FORMAT A30   HEADING "Common|Lookup Context"
+SQL> COL common_lookup_type	FORMAT A16   HEADING "Common|Lookup Type"
+SQL> COL common_lookup_meaning	FORMAT A16   HEADING "Common|Lookup Meaning"
+SQL> select common_lookup_id, common_lookup_context, common_lookup_type, common_lookup_meaning
+  2  from common_lookup
+  3   where common_lookup_type in ('DVD_FULL_SCREEN', 'DVD_WIDE_SCREEN', 'BLU-RAY') and common_lookup_context = 'ITEM'
+  4   order by common_lookup_id
+  5   ;
+
+   Common Common                         Common           Common                
+Lookup ID Lookup Context                 Lookup Type      Lookup Meaning        
+--------- ------------------------------ ---------------- ----------------      
+     1010 ITEM                           DVD_FULL_SCREEN  DVD: Full Screen      
+     1011 ITEM                           DVD_WIDE_SCREEN  DVD: Wide Screen      
+     1015 ITEM                           BLU-RAY          Blu-ray               
+
+3 rows selected.
+
+SQL> 
+SQL> -- ======================================================================
+SQL> --  Step #8
+SQL> --  -------
+SQL> --   Write a query that returns the item_title and item_rating columns
+SQL> --   in the SELECT-list from a join between the item and item_rental
+SQL> --   tables that uses the item_id column. Use a WHERE clause that
+SQL> --   compares the item_type column value of each row to the result of
+SQL> --   a subquery, which can be the right operand of an IN, =ANY, or
+SQL> --   =SOME lookup operator inside a set of parentheses. You shoud use
+SQL> --   the query you developed as a solution to Step #7 but only return
+SQL> --   one column in the SELECT-list, which should be the common_lookup_id
+SQL> --   column. Effectively, the subquery lets you lookup the item_type
+SQL> --   column values by using their plain English text meaning. Order the
+SQL> --   results by the item_title column values.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: This uses WHERE and ORDER BY clauses and a scalar subquery.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: The following header for displaying the data.
+SQL> --
+SQL> --  COL item_title   FORMAT A28  HEADING "Item Title"
+SQL> --  COL item_rating  FORMAT A6   HEADING "Item|Rating"
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Anticipated Results
+SQL> -- ----------------------------------------------------------------------
+SQL> -- 			       Item
+SQL> --   Item Title		       Rating
+SQL> --   ---------------------------- ------
+SQL> --   Camelot		       G
+SQL> --   Hook			       PG
+SQL> --   I Remember Mama	       NR
+SQL> --   Star Wars I		       PG
+SQL> --   Star Wars II		       PG
+SQL> --   Star Wars III 	       PG13
+SQL> --   The Hunt for Red October     PG
+SQL> --
+SQL> --   7 rows selected.
+SQL> -- ======================================================================
+SQL> COL item_title   FORMAT A28  HEADING "Item Title"
+SQL> COL item_rating  FORMAT A6   HEADING "Item|Rating"
+SQL> select item_title, item_rating
+  2  from item i join rental_item r on i.item_id = r.item_id
+  3  where item_type = any( select common_lookup_id
+  4  	 from common_lookup
+  5  	 where common_lookup_type in ('DVD_FULL_SCREEN', 'DVD_WIDE_SCREEN', 'BLU-RAY') and common_lookup_context = 'ITEM')
+  6  	 order by item_title;
+
+                             Item                                               
+Item Title                   Rating                                             
+---------------------------- ------                                             
+Camelot                      G                                                  
+Hook                         PG                                                 
+I Remember Mama              NR                                                 
+Star Wars I                  PG                                                 
+Star Wars II                 PG                                                 
+Star Wars III                PG13                                               
+The Hunt for Red October     PG                                                 
+
+7 rows selected.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> -- ======================================================================
+SQL> --  Step #9
+SQL> --  -------
+SQL> --   Write a query that returns the following five columns from the
+SQL> --   common_lookup table, which is a table of tables:
+SQL> --     - common_lookup_id
+SQL> --     - common_lookup_context
+SQL> --     - common_lookup_type
+SQL> --     - common_lookup_meaning
+SQL> --     - card_total, which is a count of the unique common_lookup_type
+SQL> --       values
+SQL> --   Use an inner join between the common_lookup and member table, and
+SQL> --   use the common_lookup_id value as the primary key and the
+SQL> --   credit_card_type column as the foreign key column as the columns
+SQL> --   in an ON subclause of the FROM clause.
+SQL> --
+SQL> --   Filter the result set by checking for a common_lookup_context value
+SQL> --   of an uppercase 'MEMBER' string and a common_lookup_type value that is
+SQL> --   an uppercase 'DISCOVER_CARD', 'MASTER_CARD', or 'VISA_CARD' string.
+SQL> --   Assign an alias of card_total to the column that counts unique
+SQL> --   common_lookup_type column values. Order by the ascending values of
+SQL> --   the common_lookup_meaning column values.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: The IN, =ANY, or =SOME lookup operator.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: The following header for displaying the data.
+SQL> --
+SQL> --  COL common_lookup_id	    FORMAT 9999  HEADING "Common|Lookup ID"
+SQL> --  COL common_lookup_context  FORMAT A30	 HEADING "Common|Lookup Context"
+SQL> --  COL common_lookup_type     FORMAT A16	 HEADING "Common|Lookup Type"
+SQL> --  COL common_lookup_meaning  FORMAT A16	 HEADING "Common|Lookup Meaning"
+SQL> --  COL card_total 	    FORMAT 999	 HEADING "Card|Total"
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Anticipated Results
+SQL> -- ----------------------------------------------------------------------
+SQL> --      Common Common	   Common	    Common	      Card
+SQL> --   Lookup ID Lookup Context Lookup Type	    Lookup Meaning   Total
+SQL> --   --------- -------------- ---------------- ---------------- -----
+SQL> --        1005 MEMBER	   DISCOVER_CARD    Discover Card	 3
+SQL> --        1007 MEMBER	   VISA_CARD	    Visa Card		 5
+SQL> --
+SQL> --   2 rows selected.
+SQL> -- ======================================================================
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> -- ======================================================================
+SQL> --  Step #10
+SQL> --  --------
+SQL> --   HINT: This is the way to return the count of something that does
+SQL> -- 	not exist. It is a very tricky stretch problem to complete,
+SQL> -- 	and the key requires that the NVL function returns a zero
+SQL> -- 	for a null value, which is then added by a SUM function as
+SQL> -- 	a zero and reported as the card count of an unused card type.
+SQL> --
+SQL> --   Write a query that returns the following five columns from the
+SQL> --   common_lookup table, which is a table of tables:
+SQL> --     - common_lookup_id
+SQL> --     - common_lookup_context
+SQL> --     - common_lookup_type
+SQL> --     - common_lookup_meaning
+SQL> --     - card_total, which is a count of the unique common_lookup_type
+SQL> --       values derived by using a combination of a SUM and NVL function
+SQL> --       for rows that return a null credit_card_type column from the
+SQL> --       member table.
+SQL> --   Use a left join between the common_lookup table on the left of
+SQL> --   the join keyword and the member table on the right of the join
+SQL> --   keyword. You use the common_lookup_id value as the primary key and the
+SQL> --   credit_card_type column as the foreign key column as the columns
+SQL> --   in an ON subclause of the FROM clause.
+SQL> --
+SQL> --   Filter the result set by checking for a common_lookup_context value
+SQL> --   of an uppercase 'MEMBER' string and a common_lookup_type value that is
+SQL> --   an uppercase 'DISCOVER_CARD', 'MASTER_CARD', or 'VISA_CARD' string; and
+SQL> --   a credit_card_type value that is NULL (or, there are three filters in
+SQL> --   the where clause of this query. Assign an alias of card_total
+SQL> --   to the column that sums a zero for a null credit_card_type column
+SQL> --   value while meeting the other criteria. This is known as the right
+SQL> --   relative complement of a left outer join. Order by the ascending
+SQL> --   values of the common_lookup_meaning column values.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: This uses WHERE, GROUP BY, and ORDER BY clauses, and a combination
+SQL> --        of a SUM function of the result of a NVL function against the
+SQL> --        credit_card_type column of the member table.
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Uses: The following header for displaying the data.
+SQL> --
+SQL> --  COL common_lookup_id	    FORMAT 9999  HEADING "Common|Lookup ID"
+SQL> --  COL common_lookup_context  FORMAT A30	 HEADING "Common|Lookup Context"
+SQL> --  COL common_lookup_type     FORMAT A16	 HEADING "Common|Lookup Type"
+SQL> --  COL common_lookup_meaning  FORMAT A16	 HEADING "Common|Lookup Meaning"
+SQL> --  COL card_total 	    FORMAT 999	 HEADING "Card|Total"
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Anticipated Results
+SQL> -- ----------------------------------------------------------------------
+SQL> --      Common Common	   Common	    Common	      Card
+SQL> --   Lookup ID Lookup Context Lookup Type	    Lookup Meaning   Total
+SQL> --   --------- -------------- ---------------- ---------------- -----
+SQL> --        1006 MEMBER	   MASTER_CARD	    Master Card 	 0
+SQL> --
+SQL> --   1 row selected.
+SQL> -- ======================================================================
+SQL> COL common_lookup_id	FORMAT 9999  HEADING "Common|Lookup ID"
+SQL> COL common_lookup_context	FORMAT A30   HEADING "Common|Lookup Context"
+SQL> COL common_lookup_type	FORMAT A16   HEADING "Common|Lookup Type"
+SQL> COL common_lookup_meaning	FORMAT A16   HEADING "Common|Lookup Meaning"
+SQL> COL card_total		FORMAT 999   HEADING "Card|Total"
+SQL> 
+SQL> 
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Close log file.
+SQL> -- ----------------------------------------------------------------------
+SQL> SPOOL OFF

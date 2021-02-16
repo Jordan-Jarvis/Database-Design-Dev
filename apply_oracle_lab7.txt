@@ -1,0 +1,865 @@
+SQL> 
+SQL> -- Set the page size.
+SQL> SET ECHO ON
+SQL> SET PAGESIZE 999
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Step #1 : Add two columns to the RENTAL_ITEM table.
+SQL> -- ----------------------------------------------------------------------
+SQL> SELECT  'Step #1' AS "Step Number" FROM dual;
+
+Step Nu                                                                         
+-------                                                                         
+Step #1                                                                         
+
+1 row selected.
+
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Objective #1: Add the RENTAL_ITEM_PRICE and RENTAL_ITEM_TYPE columns
+SQL> -- 	       to the RENTAL_ITEM table. Both columns should use a
+SQL> -- 	       NUMBER data type in Oracle, and an int unsigned data
+SQL> -- 	       type.
+SQL> -- ----------------------------------------------------------------------
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Step #1 : Insert new rows to support PRICE table.
+SQL> -- ----------------------------------------------------------------------
+SQL> INSERT INTO common_lookup VALUES
+  2  ( common_lookup_s1.nextval
+  3  , 'YES'
+  4  , 'Yes'
+  5  , 1, SYSDATE, 1, SYSDATE
+  6  , 'PRICE'
+  7  , 'ACTIVE_FLAG'
+  8  , 'Y');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup VALUES
+  2  ( common_lookup_s1.nextval
+  3  , 'NO'
+  4  , 'No'
+  5  , 1, SYSDATE, 1, SYSDATE
+  6  , 'PRICE'
+  7  , 'ACTIVE_FLAG'
+  8  , 'N');
+
+1 row created.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Verification #1: Verify the common_lookup contents.
+SQL> -- ----------------------------------------------------------------------
+SQL> COLUMN common_lookup_table  FORMAT A20 HEADING "COMMON_LOOKUP_TABLE"
+SQL> COLUMN common_lookup_column FORMAT A20 HEADING "COMMON_LOOKUP_COLUMN"
+SQL> COLUMN common_lookup_type	 FORMAT A20 HEADING "COMMON_LOOKUP_TYPE"
+SQL> SELECT   common_lookup_table
+  2  ,	      common_lookup_column
+  3  ,	      common_lookup_type
+  4  FROM     common_lookup
+  5  WHERE    common_lookup_table = 'PRICE'
+  6  AND      common_lookup_column = 'ACTIVE_FLAG'
+  7  ORDER BY 1, 2, 3 DESC;
+
+COMMON_LOOKUP_TABLE  COMMON_LOOKUP_COLUMN COMMON_LOOKUP_TYPE                    
+-------------------- -------------------- --------------------                  
+PRICE                ACTIVE_FLAG          YES                                   
+PRICE                ACTIVE_FLAG          NO                                    
+
+2 rows selected.
+
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Step #2 : Insert new rows to support PRICE and RENTAL_ITEM table.
+SQL> -- ----------------------------------------------------------------------
+SQL> 
+SQL> INSERT INTO common_lookup VALUES
+  2  ( common_lookup_s1.nextval
+  3  , '1-DAY RENTAL', '1-Day Rental'
+  4  , 1, SYSDATE, 1, SYSDATE
+  5  , 'PRICE', 'PRICE_TYPE'
+  6  , '1');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup VALUES
+  2  ( common_lookup_s1.nextval
+  3  , '3-DAY RENTAL', '3-Day Rental'
+  4  , 1, SYSDATE, 1, SYSDATE
+  5  , 'PRICE', 'PRICE_TYPE'
+  6  , '3');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup VALUES
+  2  ( common_lookup_s1.nextval
+  3  , '5-DAY RENTAL', '5-Day Rental'
+  4  , 1, SYSDATE, 1, SYSDATE
+  5  , 'PRICE', 'PRICE_TYPE'
+  6  , '5');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup VALUES
+  2  ( common_lookup_s1.nextval
+  3  , '1-DAY RENTAL', '1-Day Rental'
+  4  , 1, SYSDATE, 1, SYSDATE
+  5  , 'RENTAL_ITEM', 'RENTAL_ITEM_TYPE'
+  6  , '1');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup VALUES
+  2  ( common_lookup_s1.nextval
+  3  , '3-DAY RENTAL', '3-Day Rental'
+  4  , 1, SYSDATE, 1, SYSDATE
+  5  , 'RENTAL_ITEM', 'RENTAL_ITEM_TYPE'
+  6  , '3');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO common_lookup VALUES
+  2  ( common_lookup_s1.nextval
+  3  , '5-DAY RENTAL', '5-Day Rental'
+  4  , 1, SYSDATE, 1, SYSDATE
+  5  , 'RENTAL_ITEM', 'RENTAL_ITEM_TYPE'
+  6  , '5');
+
+1 row created.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Step #2: Verify the common_lookup contents.
+SQL> -- ----------------------------------------------------------------------
+SQL> COLUMN common_lookup_table  FORMAT A20 HEADING "COMMON_LOOKUP_TABLE"
+SQL> COLUMN common_lookup_column FORMAT A20 HEADING "COMMON_LOOKUP_COLUMN"
+SQL> COLUMN common_lookup_type	 FORMAT A20 HEADING "COMMON_LOOKUP_TYPE"
+SQL> SELECT   common_lookup_table
+  2  ,	      common_lookup_column
+  3  ,	      common_lookup_type
+  4  FROM     common_lookup
+  5  WHERE    common_lookup_table IN ('PRICE', 'RENTAL_ITEM')
+  6  AND      common_lookup_column IN ('PRICE_TYPE', 'RENTAL_ITEM_TYPE')
+  7  ORDER BY 1,3;
+
+COMMON_LOOKUP_TABLE  COMMON_LOOKUP_COLUMN COMMON_LOOKUP_TYPE                    
+-------------------- -------------------- --------------------                  
+PRICE                PRICE_TYPE           1-DAY RENTAL                          
+PRICE                PRICE_TYPE           3-DAY RENTAL                          
+PRICE                PRICE_TYPE           5-DAY RENTAL                          
+RENTAL_ITEM          RENTAL_ITEM_TYPE     1-DAY RENTAL                          
+RENTAL_ITEM          RENTAL_ITEM_TYPE     3-DAY RENTAL                          
+RENTAL_ITEM          RENTAL_ITEM_TYPE     5-DAY RENTAL                          
+
+6 rows selected.
+
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Step #3 : Add columns to RENTAL_ITEM table and seed values.
+SQL> -- ----------------------------------------------------------------------
+SQL> -- Verification that the two columns were added correctly in lab #6
+SQL> -- ----------------------------------------------------------------------
+SQL> 
+SQL> COLUMN table_name	 FORMAT A14
+SQL> COLUMN column_id	 FORMAT 9999
+SQL> COLUMN column_name  FORMAT A22
+SQL> COLUMN data_type	 FORMAT A12
+SQL> SELECT   table_name
+  2  ,	      column_id
+  3  ,	      column_name
+  4  ,	      CASE
+  5  		WHEN nullable = 'N' THEN 'NOT NULL'
+  6  		ELSE ''
+  7  	      END AS nullable
+  8  ,	      CASE
+  9  		WHEN data_type IN ('CHAR','VARCHAR2','NUMBER') THEN
+ 10  		  data_type||'('||data_length||')'
+ 11  		ELSE
+ 12  		  data_type
+ 13  	      END AS data_type
+ 14  FROM     user_tab_columns
+ 15  WHERE    table_name = 'RENTAL_ITEM'
+ 16  ORDER BY 2;
+
+                         Column                                                 
+Table Name     COLUMN_ID Name                   NULLABLE DATA_TYPE              
+-------------- --------- ---------------------- -------- ------------           
+RENTAL_ITEM            1 RENTAL_ITEM_ID         NOT NULL NUMBER(22)             
+RENTAL_ITEM            2 RENTAL_ID              NOT NULL NUMBER(22)             
+RENTAL_ITEM            3 ITEM_ID                NOT NULL NUMBER(22)             
+RENTAL_ITEM            4 CREATED_BY             NOT NULL NUMBER(22)             
+RENTAL_ITEM            5 CREATION_DATE          NOT NULL DATE                   
+RENTAL_ITEM            6 LAST_UPDATED_BY        NOT NULL NUMBER(22)             
+RENTAL_ITEM            7 LAST_UPDATE_DATE       NOT NULL DATE                   
+RENTAL_ITEM            8 RENTAL_ITEM_PRICE               NUMBER(22)             
+RENTAL_ITEM            9 RENTAL_ITEM_TYPE                NUMBER(22)             
+
+9 rows selected.
+
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Step #3a : Update the rental_item table.
+SQL> -- ----------------------------------------------------------------------
+SQL> 
+SQL> UPDATE   rental_item ri
+  2  SET      rental_item_type =
+  3  		(SELECT   cl.common_lookup_id
+  4  		 FROM	  common_lookup cl
+  5  		 WHERE	  cl.common_lookup_code =
+  6  		   (SELECT  r.return_date - r.check_out_date
+  7  		    FROM     rental r
+  8  		    WHERE    r.rental_id = ri.rental_id)
+  9  		 AND	  cl.common_lookup_table = 'RENTAL_ITEM'
+ 10  		 AND	  cl.common_lookup_column = 'RENTAL_ITEM_TYPE');
+
+13 rows updated.
+
+SQL> 
+SQL> SELECT   ROW_COUNT
+  2  ,	      col_count
+  3  FROM    (SELECT   COUNT(*) AS ROW_COUNT
+  4  	      FROM     rental_item) rc CROSS JOIN
+  5  	     (SELECT   COUNT(rental_item_type) AS col_count
+  6  	      FROM     rental_item
+  7  	      WHERE    rental_item_type IS NOT NULL) cc;
+
+ ROW_COUNT  COL_COUNT                                                           
+---------- ----------                                                           
+        13         13                                                           
+
+1 row selected.
+
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Step #3a : Verify that the rows were updated correctly
+SQL> -- ----------------------------------------------------------------------
+SQL> -- Verify that the 13 rows updated
+SQL> SELECT   ROW_COUNT
+  2  ,	      col_count
+  3  FROM    (SELECT   COUNT(*) AS ROW_COUNT
+  4  	      FROM     rental_item) rc CROSS JOIN
+  5  	     (SELECT   COUNT(rental_item_type) AS col_count
+  6  	      FROM     rental_item
+  7  	      WHERE    rental_item_type IS NOT NULL) cc;
+
+ ROW_COUNT  COL_COUNT                                                           
+---------- ----------                                                           
+        13         13                                                           
+
+1 row selected.
+
+SQL> 
+SQL> 
+SQL> -- Verify the foreign key constraints.
+SQL> COL ROWNUM 	     FORMAT 999999  HEADING "Row|Number"
+SQL> COL rental_item_type    FORMAT 999999  HEADING "Rental|Item|Type"
+SQL> COL common_lookup_id    FORMAT 999999  HEADING "Common|Lookup|ID #"
+SQL> COL common_lookup_code  FORMAT A6	    HEADING "Common|Lookup|Code"
+SQL> COL return_date	     FORMAT A11     HEADING "Return|Date"
+SQL> COL check_out_date      FORMAT A11     HEADING "Check Out|Date"
+SQL> COL r_rental_id	     FORMAT 999999  HEADING "Rental|ID #"
+SQL> COL ri_rental_id	     FORMAT 999999  HEADING "Rental|Item|Rental|ID #"
+SQL> SELECT   ROWNUM
+  2  ,	      ri.rental_item_type
+  3  ,	      cl.common_lookup_id
+  4  ,	      cl.common_lookup_code
+  5  ,	      r.return_date
+  6  ,	      r.check_out_date
+  7  ,	      CAST((r.return_date - r.check_out_date) AS CHAR) AS lookup_code
+  8  ,	      r.rental_id AS r_rental_id
+  9  ,	      ri.rental_id AS ri_rental_id
+ 10  FROM     rental r FULL JOIN rental_item ri
+ 11  ON       r.rental_id = ri.rental_id FULL JOIN common_lookup cl
+ 12  ON       cl.common_lookup_code =
+ 13  		CAST((r.return_date - r.check_out_date) AS CHAR)
+ 14  WHERE    cl.common_lookup_table = 'RENTAL_ITEM'
+ 15  AND      cl.common_lookup_column = 'RENTAL_ITEM_TYPE'
+ 16  AND      cl.common_lookup_type LIKE '%-DAY RENTAL'
+ 17  ORDER BY r.rental_id
+ 18  ,	      ri.rental_id;
+
+                                                                  Rental        
+         Rental  Common Common                                      Item        
+    Row    Item  Lookup Lookup Return      Check Out      Rental  Rental        
+ Number    Type    ID # Code   Date        Date        L    ID #    ID #        
+------- ------- ------- ------ ----------- ----------- - ------- -------        
+      1    1025    1025 5      26-FEB-20   21-FEB-20   5    1001    1001        
+      2    1025    1025 5      26-FEB-20   21-FEB-20   5    1001    1001        
+      3    1025    1025 5      26-FEB-20   21-FEB-20   5    1001    1001        
+      4    1025    1025 5      26-FEB-20   21-FEB-20   5    1002    1002        
+      5    1025    1025 5      26-FEB-20   21-FEB-20   5    1002    1002        
+      6    1025    1025 5      26-FEB-20   21-FEB-20   5    1003    1003        
+      7    1025    1025 5      26-FEB-20   21-FEB-20   5    1004    1004        
+      8    1025    1025 5      26-FEB-20   21-FEB-20   5    1005    1005        
+      9    1025    1025 5      26-FEB-20   21-FEB-20   5    1005    1005        
+     10    1023    1023 1      22-FEB-20   21-FEB-20   1    1006    1006        
+     11    1023    1023 1      22-FEB-20   21-FEB-20   1    1006    1006        
+     12    1024    1024 3      24-FEB-20   21-FEB-20   3    1007    1007        
+     13    1025    1025 5      26-FEB-20   21-FEB-20   5    1008    1008        
+
+13 rows selected.
+
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Step #3b : Add a foreign key to rental_item_type
+SQL> -- ----------------------------------------------------------------------
+SQL> 
+SQL> ALTER TABLE rental_item
+  2  ADD CONSTRAINT fk_rental_item_7 FOREIGN KEY(rental_item_type) REFERENCES common_lookup(common_lookup_id);
+
+Table altered.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Step #3b : Verify addition of foreign key
+SQL> -- ----------------------------------------------------------------------
+SQL> COLUMN table_name	    FORMAT A12 HEADING "TABLE NAME"
+SQL> COLUMN constraint_name FORMAT A18 HEADING "CONSTRAINT NAME"
+SQL> COLUMN constraint_type FORMAT A12 HEADING "CONSTRAINT|TYPE"
+SQL> COLUMN column_name     FORMAT A18 HEADING "COLUMN NAME"
+SQL> SELECT   uc.table_name
+  2  ,	      uc.constraint_name
+  3  ,	      CASE
+  4  		WHEN uc.constraint_type = 'R' THEN
+  5  		 'FOREIGN KEY'
+  6  	      END AS constraint_type
+  7  ,	      ucc.column_name
+  8  FROM     user_constraints uc INNER JOIN user_cons_columns ucc
+  9  ON       uc.constraint_name = ucc.constraint_name
+ 10  WHERE    uc.table_name = 'RENTAL_ITEM'
+ 11  AND      ucc.column_name = 'RENTAL_ITEM_TYPE';
+
+                                CONSTRAINT                                      
+TABLE NAME   CONSTRAINT NAME    TYPE         COLUMN NAME                        
+------------ ------------------ ------------ ------------------                 
+RENTAL_ITEM  FK_RENTAL_ITEM_7   FOREIGN KEY  RENTAL_ITEM_TYPE                   
+
+1 row selected.
+
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Step #3c : Modify rental_item_type to not null constrained.
+SQL> -- ----------------------------------------------------------------------
+SQL> ALTER TABLE rental_item
+  2  MODIFY rental_item_type CONSTRAINT nn_rental_item_7 NOT NULL;
+
+Table altered.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Step #3c : Verify changes to the rental_item table.
+SQL> -- ----------------------------------------------------------------------
+SQL> COLUMN CONSTRAINT FORMAT A10
+SQL> SELECT   TABLE_NAME
+  2  ,	      column_name
+  3  ,	      CASE
+  4  		WHEN NULLABLE = 'N' THEN 'NOT NULL'
+  5  		ELSE 'NULLABLE'
+  6  	      END AS CONSTRAINT
+  7  FROM     user_tab_columns
+  8  WHERE    TABLE_NAME = 'RENTAL_ITEM'
+  9  AND      column_name = 'RENTAL_ITEM_TYPE';
+
+TABLE NAME   COLUMN NAME        CONSTRAINT                                      
+------------ ------------------ ----------                                      
+RENTAL_ITEM  RENTAL_ITEM_TYPE   NOT NULL                                        
+
+1 row selected.
+
+SQL> 
+SQL> -- ----------------------------------------------------------------------
+SQL> --  Step #4 : Fix query to get 135 rows.
+SQL> -- ----------------------------------------------------------------------
+SQL> SELECT count(*) from item;
+
+  COUNT(*)                                                                      
+----------                                                                      
+        24                                                                      
+
+1 row selected.
+
+SQL> 
+SQL> COLUMN item_id	FORMAT 9999 HEADING "ITEM|ID"
+SQL> COLUMN active_flag FORMAT A6   HEADING "ACTIVE|FLAG"
+SQL> COLUMN price_type	FORMAT 9999 HEADING "PRICE|TYPE"
+SQL> COLUMN price_desc	FORMAT A12  HEADING "PRICE DESC"
+SQL> COLUMN start_date	FORMAT A10  HEADING "START|DATE"
+SQL> COLUMN end_date	FORMAT A10  HEADING "END|DATE"
+SQL> COLUMN amount	FORMAT 9999 HEADING "AMOUNT"
+SQL> 
+SQL> SELECT   i.item_id
+  2  ,	      af.active_flag
+  3  ,	      cl.common_lookup_id AS price_type
+  4  ,	      cl.common_lookup_type AS price_desc
+  5  ,	      CASE
+  6  		WHEN  (TRUNC(SYSDATE) - 30) > TRUNC(i.release_date) AND active_flag = 'Y' THEN
+  7  		    TO_CHAR(TRUNC(i.release_date) + 31, 'DD-MON-YY HH24:MI:SS')
+  8  		ELSE  TO_CHAR(TRUNC(i.release_date), 'DD-MON-YY HH24:MI:SS')
+  9  	      END AS start_date
+ 10  ,	      CASE
+ 11  		WHEN (TRUNC(SYSDATE) - 30) > TRUNC(i.release_date) AND active_flag = 'N' THEN
+ 12  		    TO_CHAR(TRUNC(i.release_date) + 30, 'DD-MON-YY HH24:MI:SS')
+ 13  	      END AS end_date
+ 14  ,	      CASE
+ 15  		WHEN  (TRUNC(SYSDATE) - 30) > TRUNC(i.release_date) AND active_flag = 'Y' THEN
+ 16  		     CASE WHEN rental_days = 1 THEN '$1'
+ 17  		     WHEN rental_days = 3
+ 18  		     THEN '$3'
+ 19  		     WHEN rental_days = 5
+ 20  		     THEN '$5'
+ 21  		     END
+ 22  		ELSE
+ 23  		     CASE WHEN rental_days = 1
+ 24  		     THEN '$3'
+ 25  		     WHEN rental_days = 3
+ 26  		     THEN '$10'
+ 27  		     WHEN rental_days = 5
+ 28  		     THEN '$15'
+ 29  		     END
+ 30  	      END AS amount
+ 31  FROM     item i CROSS JOIN
+ 32  	     (SELECT 'Y' AS active_flag FROM dual
+ 33  	      UNION ALL
+ 34  	      SELECT 'N' AS active_flag FROM dual) af CROSS JOIN
+ 35  	     (SELECT '1' AS rental_days FROM dual
+ 36  	      UNION ALL
+ 37  	      SELECT '3' AS rental_days FROM dual
+ 38  	      UNION ALL
+ 39  	      SELECT '5' AS rental_days FROM dual) dr INNER JOIN
+ 40  	      common_lookup cl ON dr.rental_days = SUBSTR(cl.common_lookup_type,1,1)
+ 41  WHERE    cl.common_lookup_table = 'PRICE'
+ 42  AND      cl.common_lookup_column = 'PRICE_TYPE'
+ 43  AND NOT (active_flag = 'N' AND (TRUNC(SYSDATE) - 30) <= TRUNC(i.release_date))
+ 44  ORDER BY 1, 2, 3;
+
+ ITEM ACTIVE PRICE              START      END                                  
+   ID FLAG    TYPE PRICE DESC   DATE       DATE       AMO                       
+----- ------ ----- ------------ ---------- ---------- ---                       
+ 1001 N       1020 1-DAY RENTAL 02-MAR-90  01-APR-90  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1001 N       1021 3-DAY RENTAL 02-MAR-90  01-APR-90  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1001 N       1022 5-DAY RENTAL 02-MAR-90  01-APR-90  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1001 Y       1020 1-DAY RENTAL 02-APR-90             $1                        
+                                00:00:00                                        
+                                                                                
+ 1001 Y       1021 3-DAY RENTAL 02-APR-90             $3                        
+                                00:00:00                                        
+                                                                                
+ 1001 Y       1022 5-DAY RENTAL 02-APR-90             $5                        
+                                00:00:00                                        
+                                                                                
+ 1002 N       1020 1-DAY RENTAL 04-MAY-99  03-JUN-99  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1002 N       1021 3-DAY RENTAL 04-MAY-99  03-JUN-99  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1002 N       1022 5-DAY RENTAL 04-MAY-99  03-JUN-99  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1002 Y       1020 1-DAY RENTAL 04-JUN-99             $1                        
+                                00:00:00                                        
+                                                                                
+ 1002 Y       1021 3-DAY RENTAL 04-JUN-99             $3                        
+                                00:00:00                                        
+                                                                                
+ 1002 Y       1022 5-DAY RENTAL 04-JUN-99             $5                        
+                                00:00:00                                        
+                                                                                
+ 1003 N       1020 1-DAY RENTAL 16-MAY-02  15-JUN-02  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1003 N       1021 3-DAY RENTAL 16-MAY-02  15-JUN-02  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1003 N       1022 5-DAY RENTAL 16-MAY-02  15-JUN-02  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1003 Y       1020 1-DAY RENTAL 16-JUN-02             $1                        
+                                00:00:00                                        
+                                                                                
+ 1003 Y       1021 3-DAY RENTAL 16-JUN-02             $3                        
+                                00:00:00                                        
+                                                                                
+ 1003 Y       1022 5-DAY RENTAL 16-JUN-02             $5                        
+                                00:00:00                                        
+                                                                                
+ 1004 N       1020 1-DAY RENTAL 16-MAY-02  15-JUN-02  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1004 N       1021 3-DAY RENTAL 16-MAY-02  15-JUN-02  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1004 N       1022 5-DAY RENTAL 16-MAY-02  15-JUN-02  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1004 Y       1020 1-DAY RENTAL 16-JUN-02             $1                        
+                                00:00:00                                        
+                                                                                
+ 1004 Y       1021 3-DAY RENTAL 16-JUN-02             $3                        
+                                00:00:00                                        
+                                                                                
+ 1004 Y       1022 5-DAY RENTAL 16-JUN-02             $5                        
+                                00:00:00                                        
+                                                                                
+ 1005 N       1020 1-DAY RENTAL 19-MAY-05  18-JUN-05  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1005 N       1021 3-DAY RENTAL 19-MAY-05  18-JUN-05  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1005 N       1022 5-DAY RENTAL 19-MAY-05  18-JUN-05  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1005 Y       1020 1-DAY RENTAL 19-JUN-05             $1                        
+                                00:00:00                                        
+                                                                                
+ 1005 Y       1021 3-DAY RENTAL 19-JUN-05             $3                        
+                                00:00:00                                        
+                                                                                
+ 1005 Y       1022 5-DAY RENTAL 19-JUN-05             $5                        
+                                00:00:00                                        
+                                                                                
+ 1006 N       1020 1-DAY RENTAL 16-MAY-02  15-JUN-02  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1006 N       1021 3-DAY RENTAL 16-MAY-02  15-JUN-02  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1006 N       1022 5-DAY RENTAL 16-MAY-02  15-JUN-02  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1006 Y       1020 1-DAY RENTAL 16-JUN-02             $1                        
+                                00:00:00                                        
+                                                                                
+ 1006 Y       1021 3-DAY RENTAL 16-JUN-02             $3                        
+                                00:00:00                                        
+                                                                                
+ 1006 Y       1022 5-DAY RENTAL 16-JUN-02             $5                        
+                                00:00:00                                        
+                                                                                
+ 1007 N       1020 1-DAY RENTAL 24-JUL-03  23-AUG-03  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1007 N       1021 3-DAY RENTAL 24-JUL-03  23-AUG-03  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1007 N       1022 5-DAY RENTAL 24-JUL-03  23-AUG-03  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1007 Y       1020 1-DAY RENTAL 24-AUG-03             $1                        
+                                00:00:00                                        
+                                                                                
+ 1007 Y       1021 3-DAY RENTAL 24-AUG-03             $3                        
+                                00:00:00                                        
+                                                                                
+ 1007 Y       1022 5-DAY RENTAL 24-AUG-03             $5                        
+                                00:00:00                                        
+                                                                                
+ 1008 N       1020 1-DAY RENTAL 30-JUN-03  30-JUL-03  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1008 N       1021 3-DAY RENTAL 30-JUN-03  30-JUL-03  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1008 N       1022 5-DAY RENTAL 30-JUN-03  30-JUL-03  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1008 Y       1020 1-DAY RENTAL 31-JUL-03             $1                        
+                                00:00:00                                        
+                                                                                
+ 1008 Y       1021 3-DAY RENTAL 31-JUL-03             $3                        
+                                00:00:00                                        
+                                                                                
+ 1008 Y       1022 5-DAY RENTAL 31-JUL-03             $5                        
+                                00:00:00                                        
+                                                                                
+ 1009 N       1020 1-DAY RENTAL 30-JUN-03  30-JUL-03  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1009 N       1021 3-DAY RENTAL 30-JUN-03  30-JUL-03  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1009 N       1022 5-DAY RENTAL 30-JUN-03  30-JUL-03  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1009 Y       1020 1-DAY RENTAL 31-JUL-03             $1                        
+                                00:00:00                                        
+                                                                                
+ 1009 Y       1021 3-DAY RENTAL 31-JUL-03             $3                        
+                                00:00:00                                        
+                                                                                
+ 1009 Y       1022 5-DAY RENTAL 31-JUL-03             $5                        
+                                00:00:00                                        
+                                                                                
+ 1010 N       1020 1-DAY RENTAL 17-NOV-03  17-DEC-03  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1010 N       1021 3-DAY RENTAL 17-NOV-03  17-DEC-03  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1010 N       1022 5-DAY RENTAL 17-NOV-03  17-DEC-03  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1010 Y       1020 1-DAY RENTAL 18-DEC-03             $1                        
+                                00:00:00                                        
+                                                                                
+ 1010 Y       1021 3-DAY RENTAL 18-DEC-03             $3                        
+                                00:00:00                                        
+                                                                                
+ 1010 Y       1022 5-DAY RENTAL 18-DEC-03             $5                        
+                                00:00:00                                        
+                                                                                
+ 1011 N       1020 1-DAY RENTAL 08-APR-03  08-MAY-03  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1011 N       1021 3-DAY RENTAL 08-APR-03  08-MAY-03  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1011 N       1022 5-DAY RENTAL 08-APR-03  08-MAY-03  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1011 Y       1020 1-DAY RENTAL 09-MAY-03             $1                        
+                                00:00:00                                        
+                                                                                
+ 1011 Y       1021 3-DAY RENTAL 09-MAY-03             $3                        
+                                00:00:00                                        
+                                                                                
+ 1011 Y       1022 5-DAY RENTAL 09-MAY-03             $5                        
+                                00:00:00                                        
+                                                                                
+ 1012 N       1020 1-DAY RENTAL 15-NOV-04  15-DEC-04  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1012 N       1021 3-DAY RENTAL 15-NOV-04  15-DEC-04  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1012 N       1022 5-DAY RENTAL 15-NOV-04  15-DEC-04  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1012 Y       1020 1-DAY RENTAL 16-DEC-04             $1                        
+                                00:00:00                                        
+                                                                                
+ 1012 Y       1021 3-DAY RENTAL 16-DEC-04             $3                        
+                                00:00:00                                        
+                                                                                
+ 1012 Y       1022 5-DAY RENTAL 16-DEC-04             $5                        
+                                00:00:00                                        
+                                                                                
+ 1013 N       1020 1-DAY RENTAL 19-MAY-06  18-JUN-06  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1013 N       1021 3-DAY RENTAL 19-MAY-06  18-JUN-06  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1013 N       1022 5-DAY RENTAL 19-MAY-06  18-JUN-06  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1013 Y       1020 1-DAY RENTAL 19-JUN-06             $1                        
+                                00:00:00                                        
+                                                                                
+ 1013 Y       1021 3-DAY RENTAL 19-JUN-06             $3                        
+                                00:00:00                                        
+                                                                                
+ 1013 Y       1022 5-DAY RENTAL 19-JUN-06             $5                        
+                                00:00:00                                        
+                                                                                
+ 1014 N       1020 1-DAY RENTAL 28-APR-06  28-MAY-06  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1014 N       1021 3-DAY RENTAL 28-APR-06  28-MAY-06  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1014 N       1022 5-DAY RENTAL 28-APR-06  28-MAY-06  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1014 Y       1020 1-DAY RENTAL 29-MAY-06             $1                        
+                                00:00:00                                        
+                                                                                
+ 1014 Y       1021 3-DAY RENTAL 29-MAY-06             $3                        
+                                00:00:00                                        
+                                                                                
+ 1014 Y       1022 5-DAY RENTAL 29-MAY-06             $5                        
+                                00:00:00                                        
+                                                                                
+ 1015 N       1020 1-DAY RENTAL 01-MAR-92  31-MAR-92  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1015 N       1021 3-DAY RENTAL 01-MAR-92  31-MAR-92  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1015 N       1022 5-DAY RENTAL 01-MAR-92  31-MAR-92  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1015 Y       1020 1-DAY RENTAL 01-APR-92             $1                        
+                                00:00:00                                        
+                                                                                
+ 1015 Y       1021 3-DAY RENTAL 01-APR-92             $3                        
+                                00:00:00                                        
+                                                                                
+ 1015 Y       1022 5-DAY RENTAL 01-APR-92             $5                        
+                                00:00:00                                        
+                                                                                
+ 1016 N       1020 1-DAY RENTAL 05-JAN-98  04-FEB-98  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1016 N       1021 3-DAY RENTAL 05-JAN-98  04-FEB-98  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1016 N       1022 5-DAY RENTAL 05-JAN-98  04-FEB-98  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1016 Y       1020 1-DAY RENTAL 05-FEB-98             $1                        
+                                00:00:00                                        
+                                                                                
+ 1016 Y       1021 3-DAY RENTAL 05-FEB-98             $3                        
+                                00:00:00                                        
+                                                                                
+ 1016 Y       1022 5-DAY RENTAL 05-FEB-98             $5                        
+                                00:00:00                                        
+                                                                                
+ 1017 N       1020 1-DAY RENTAL 02-NOV-99  02-DEC-99  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1017 N       1021 3-DAY RENTAL 02-NOV-99  02-DEC-99  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1017 N       1022 5-DAY RENTAL 02-NOV-99  02-DEC-99  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1017 Y       1020 1-DAY RENTAL 03-DEC-99             $1                        
+                                00:00:00                                        
+                                                                                
+ 1017 Y       1021 3-DAY RENTAL 03-DEC-99             $3                        
+                                00:00:00                                        
+                                                                                
+ 1017 Y       1022 5-DAY RENTAL 03-DEC-99             $5                        
+                                00:00:00                                        
+                                                                                
+ 1018 N       1020 1-DAY RENTAL 28-JUN-94  28-JUL-94  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1018 N       1021 3-DAY RENTAL 28-JUN-94  28-JUL-94  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1018 N       1022 5-DAY RENTAL 28-JUN-94  28-JUL-94  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1018 Y       1020 1-DAY RENTAL 29-JUL-94             $1                        
+                                00:00:00                                        
+                                                                                
+ 1018 Y       1021 3-DAY RENTAL 29-JUL-94             $3                        
+                                00:00:00                                        
+                                                                                
+ 1018 Y       1022 5-DAY RENTAL 29-JUL-94             $5                        
+                                00:00:00                                        
+                                                                                
+ 1019 N       1020 1-DAY RENTAL 11-DEC-91  10-JAN-92  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1019 N       1021 3-DAY RENTAL 11-DEC-91  10-JAN-92  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1019 N       1022 5-DAY RENTAL 11-DEC-91  10-JAN-92  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1019 Y       1020 1-DAY RENTAL 11-JAN-92             $1                        
+                                00:00:00                                        
+                                                                                
+ 1019 Y       1021 3-DAY RENTAL 11-JAN-92             $3                        
+                                00:00:00                                        
+                                                                                
+ 1019 Y       1022 5-DAY RENTAL 11-JAN-92             $5                        
+                                00:00:00                                        
+                                                                                
+ 1020 N       1020 1-DAY RENTAL 04-DEC-92  03-JAN-93  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1020 N       1021 3-DAY RENTAL 04-DEC-92  03-JAN-93  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1020 N       1022 5-DAY RENTAL 04-DEC-92  03-JAN-93  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1020 Y       1020 1-DAY RENTAL 04-JAN-93             $1                        
+                                00:00:00                                        
+                                                                                
+ 1020 Y       1021 3-DAY RENTAL 04-JAN-93             $3                        
+                                00:00:00                                        
+                                                                                
+ 1020 Y       1022 5-DAY RENTAL 04-JAN-93             $5                        
+                                00:00:00                                        
+                                                                                
+ 1021 N       1020 1-DAY RENTAL 15-MAY-98  14-JUN-98  $3                        
+                                00:00:00   00:00:00                             
+                                                                                
+ 1021 N       1021 3-DAY RENTAL 15-MAY-98  14-JUN-98  $10                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1021 N       1022 5-DAY RENTAL 15-MAY-98  14-JUN-98  $15                       
+                                00:00:00   00:00:00                             
+                                                                                
+ 1021 Y       1020 1-DAY RENTAL 15-JUN-98             $1                        
+                                00:00:00                                        
+                                                                                
+ 1021 Y       1021 3-DAY RENTAL 15-JUN-98             $3                        
+                                00:00:00                                        
+                                                                                
+ 1021 Y       1022 5-DAY RENTAL 15-JUN-98             $5                        
+                                00:00:00                                        
+                                                                                
+ 1022 Y       1020 1-DAY RENTAL 20-FEB-20             $3                        
+                                00:00:00                                        
+                                                                                
+ 1022 Y       1021 3-DAY RENTAL 20-FEB-20             $10                       
+                                00:00:00                                        
+                                                                                
+ 1022 Y       1022 5-DAY RENTAL 20-FEB-20             $15                       
+                                00:00:00                                        
+                                                                                
+ 1023 Y       1020 1-DAY RENTAL 20-FEB-20             $3                        
+                                00:00:00                                        
+                                                                                
+ 1023 Y       1021 3-DAY RENTAL 20-FEB-20             $10                       
+                                00:00:00                                        
+                                                                                
+ 1023 Y       1022 5-DAY RENTAL 20-FEB-20             $15                       
+                                00:00:00                                        
+                                                                                
+ 1024 Y       1020 1-DAY RENTAL 20-FEB-20             $3                        
+                                00:00:00                                        
+                                                                                
+ 1024 Y       1021 3-DAY RENTAL 20-FEB-20             $10                       
+                                00:00:00                                        
+                                                                                
+ 1024 Y       1022 5-DAY RENTAL 20-FEB-20             $15                       
+                                00:00:00                                        
+                                                                                
+
+135 rows selected.
+
+SQL> 
+SQL> SPOOL OFF

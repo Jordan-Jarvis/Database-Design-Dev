@@ -1,0 +1,983 @@
+SQL> 
+SQL> -- --------------------------------------------------------------------------------
+SQL> --  Step #1 : Create CALENDAR table.
+SQL> -- --------------------------------------------------------------------------------
+SQL> -- Conditionally drop table.
+SQL> BEGIN
+  2    FOR i IN (SELECT table_name
+  3  		 FROM	user_tables
+  4  		 WHERE	table_name = 'CALENDAR') LOOP
+  5  	 EXECUTE IMMEDIATE 'DROP TABLE '||i.table_name||' CASCADE CONSTRAINTS';
+  6    END LOOP;
+  7    FOR i IN (SELECT sequence_name
+  8  		 FROM	user_sequences
+  9  		 WHERE	sequence_name = 'CALENDAR_S1') LOOP
+ 10  	 EXECUTE IMMEDIATE 'DROP SEQUENCE '||i.sequence_name;
+ 11    END LOOP;
+ 12  END;
+ 13  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- --------------------------------------------------------------------------------
+SQL> --  Step #1 : Create the CALENDAR table.
+SQL> -- --------------------------------------------------------------------------------
+SQL> create table calendar
+  2  (calendar_id	 NUMBER,
+  3  calendar_name	 varchar2(10)	 constraint nn_calendar_1 NOT NULL,
+  4  calendar_short_name     VARCHAR2(3)     constraint nn_calendar_2 NOT NULL,
+  5  start_date 	 DATE		 constraint nn_calendar_3 NOT NULL,
+  6  end_date		 DATE		 constraint nn_calendar_4 NOT NULL,
+  7  created_by 	 NUMBER,
+  8  creation_date	 DATE		 constraint nn_calendar_5 NOT NULL,
+  9  last_updated_by	 NUMBER,
+ 10  lat_update_date	 DATE		 constraint nn_calendar_6 NOT NULL,
+ 11  constraint 	 pk_calendar_1	 PRIMARY KEY(calendar_id),
+ 12  constraint 	 fk_calendar_1	 FOREIGN KEY(created_by)	 REFERENCES  system_user(system_user_id),
+ 13  CONSTRAINT 	 fk_calendar_2	 FOREIGN KEY(last_updated_by)	 REFERENCES  system_user(system_user_id));
+
+Table created.
+
+SQL> 
+SQL> 
+SQL> -- --------------------------------------------------------------------------------
+SQL> --  Step #1 : Create the CALENDAR sequence.
+SQL> -- --------------------------------------------------------------------------------
+SQL> create sequence calendar_s1 START WITH 1001;
+
+Sequence created.
+
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> 
+SQL> -- Display the table organization.
+SQL> SET NULL ''
+SQL> COLUMN table_name	 FORMAT A16
+SQL> COLUMN column_id	 FORMAT 9999
+SQL> COLUMN column_name  FORMAT A22
+SQL> COLUMN data_type	 FORMAT A12
+SQL> SELECT   table_name
+  2  ,	      column_id
+  3  ,	      column_name
+  4  ,	      CASE
+  5  		WHEN nullable = 'N' THEN 'NOT NULL'
+  6  		ELSE ''
+  7  	      END AS nullable
+  8  ,	      CASE
+  9  		WHEN data_type IN ('CHAR','VARCHAR2','NUMBER') THEN
+ 10  		  data_type||'('||data_length||')'
+ 11  		ELSE
+ 12  		  data_type
+ 13  	      END AS data_type
+ 14  FROM     user_tab_columns
+ 15  WHERE    table_name = 'CALENDAR'
+ 16  ORDER BY 2;
+
+Table Name       Column ID Column Name            Nullable Data Type                                                                                  
+---------------- --------- ---------------------- -------- ------------                                                                               
+CALENDAR                 1 CALENDAR_ID            NOT NULL NUMBER(22)                                                                                 
+CALENDAR                 2 CALENDAR_NAME          NOT NULL VARCHAR2(10)                                                                               
+CALENDAR                 3 CALENDAR_SHORT_NAME    NOT NULL VARCHAR2(3)                                                                                
+CALENDAR                 4 START_DATE             NOT NULL DATE                                                                                       
+CALENDAR                 5 END_DATE               NOT NULL DATE                                                                                       
+CALENDAR                 6 CREATED_BY                      NUMBER(22)                                                                                 
+CALENDAR                 7 CREATION_DATE          NOT NULL DATE                                                                                       
+CALENDAR                 8 LAST_UPDATED_BY                 NUMBER(22)                                                                                 
+CALENDAR                 9 LAT_UPDATE_DATE        NOT NULL DATE                                                                                       
+
+9 rows selected.
+
+SQL> 
+SQL> -- Display non-unique constraints.
+SQL> COLUMN constraint_name   FORMAT A22  HEADING "Constraint Name"
+SQL> COLUMN search_condition  FORMAT A36  HEADING "Search Condition"
+SQL> COLUMN constraint_type   FORMAT A1   HEADING "C|T"
+SQL> SELECT   uc.constraint_name
+  2  ,	      uc.search_condition
+  3  ,	      uc.constraint_type
+  4  FROM     user_constraints uc INNER JOIN user_cons_columns ucc
+  5  ON       uc.table_name = ucc.table_name
+  6  AND      uc.constraint_name = ucc.constraint_name
+  7  WHERE    uc.table_name = UPPER('calendar')
+  8  AND      uc.constraint_type IN (UPPER('c'),UPPER('p'))
+  9  ORDER BY uc.constraint_type DESC
+ 10  ,	      uc.constraint_name;
+
+                                                            C                                                                                         
+Constraint Name        Search Condition                     T                                                                                         
+---------------------- ------------------------------------ -                                                                                         
+PK_CALENDAR_1                                               P                                                                                         
+NN_CALENDAR_1          "CALENDAR_NAME" IS NOT NULL          C                                                                                         
+NN_CALENDAR_2          "CALENDAR_SHORT_NAME" IS NOT NULL    C                                                                                         
+NN_CALENDAR_3          "START_DATE" IS NOT NULL             C                                                                                         
+NN_CALENDAR_4          "END_DATE" IS NOT NULL               C 
+NN_CALENDAR_5          "CREATED_BY" IS NOT NULL             C
+NN_CALENDAR_6          "CREATION_DATE" IS NOT NULL          C
+NN_CALENDAR_7          "LAST_UPDATED_BY" IS NOT NULL        C
+NN_CALENDAR_8          "LAST_UPDATE_DATE" IS NOT NULL       C
+                                                                                       
+
+9 rows selected.
+
+SQL> 
+SQL> -- Display foreign key constraints.
+SQL> COL constraint_source FORMAT A38 HEADING "Constraint Name:| Table.Column"
+SQL> COL references_column FORMAT A40 HEADING "References:| Table.Column"
+SQL> SELECT   uc.constraint_name||CHR(10)
+  2  ||      '('||ucc1.table_name||'.'||ucc1.column_name||')' constraint_source
+  3  ,	     'REFERENCES'||CHR(10)
+  4  ||      '('||ucc2.table_name||'.'||ucc2.column_name||')' references_column
+  5  FROM     user_constraints uc
+  6  ,	      user_cons_columns ucc1
+  7  ,	      user_cons_columns ucc2
+  8  WHERE    uc.constraint_name = ucc1.constraint_name
+  9  AND      uc.r_constraint_name = ucc2.constraint_name
+ 10  AND      ucc1.position = ucc2.position -- Correction for multiple column primary keys.
+ 11  AND      uc.constraint_type = 'R'
+ 12  AND      ucc1.table_name = 'CALENDAR'
+ 13  ORDER BY ucc1.table_name
+ 14  ,	      uc.constraint_name;
+
+Constraint Name:                       References:                                                                                                    
+ Table.Column                           Table.Column                                                                                                  
+-------------------------------------- ----------------------------------------                                                                       
+FK_CALENDAR_1                          REFERENCES                                                                                                     
+(CALENDAR.CREATED_BY)                  (SYSTEM_USER.SYSTEM_USER_ID)                                                                                   
+                                                                                                                                                      
+FK_CALENDAR_2                          REFERENCES                                                                                                     
+(CALENDAR.LAST_UPDATED_BY)             (SYSTEM_USER.SYSTEM_USER_ID)                                                                                   
+                                                                                                                                                      
+
+2 rows selected.
+
+SQL> 
+SQL> -- --------------------------------------------------------------------------------
+SQL> --  Step #2 : Seed CALENDAR table.
+SQL> -- --------------------------------------------------------------------------------
+SQL> 
+SQL> -- Seed the table with 10 years of data.
+SQL> DECLARE
+  2    -- Create local collection data types.
+  3    TYPE smonth IS TABLE OF VARCHAR2(3);
+  4    TYPE lmonth IS TABLE OF VARCHAR2(9);
+  5  
+  6    -- Declare month arrays.
+  7    short_month SMONTH := smonth('JAN','FEB','MAR','APR','MAY','JUN'
+  8  				   ,'JUL','AUG','SEP','OCT','NOV','DEC');
+  9    long_month  LMONTH := lmonth('January','February','March','April','May','June'
+ 10  				   ,'July','August','September','October','November','December');
+ 11  
+ 12    -- Declare base dates.
+ 13    start_date DATE := '01-JAN-09';
+ 14    end_date   DATE := '31-JAN-09';
+ 15  
+ 16    -- Declare years.
+ 17    month_id   NUMBER;
+ 18    years	  NUMBER := 1;
+ 19  
+ 20  BEGIN
+ 21  
+ 22    -- Loop through years and months.
+ 23    FOR i IN 1..years LOOP
+ 24  	 FOR j IN 1..short_month.COUNT LOOP
+ 25  	   -- Assign number from sequence.
+ 26  	   SELECT calendar_s1.nextval INTO month_id FROM dual;
+ 27  
+ 28  	   INSERT INTO calendar VALUES
+ 29  	   ( month_id
+ 30  	   , long_month(j)
+ 31  	   , short_month(j)
+ 32  	   , add_months(start_date,(j-1)+(12*(i-1)))
+ 33  	   , add_months(end_date,(j-1)+(12*(i-1)))
+ 34  	   , 1002
+ 35  	   , SYSDATE
+ 36  	   , 1002
+ 37  	   , SYSDATE);
+ 38  
+ 39  	 END LOOP;
+ 40    END LOOP;
+ 41  
+ 42  END;
+ 43  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- Set output page break interval.
+SQL> SET PAGESIZE 49999
+SQL> 
+SQL> -- Query the data insert.
+SQL> COL calendar_name	      FORMAT A10  HEADING "Calendar|Name"
+SQL> COL calendar_short_name  FORMAT A8  HEADING "Calendar|Short|Name"
+SQL> COL start_date	      FORMAT A9   HEADING "Start|Date"
+SQL> COL end_date	      FORMAT A9   HEADING "End|Date"
+SQL> SELECT   calendar_name
+  2  ,	      calendar_short_name
+  3  ,	      start_date
+  4  ,	      end_date
+  5  FROM     calendar;
+
+           Calendar                                                                                                                                   
+Calendar   Short    Start     End                                                                                                                     
+Name       Name     Date      Date                                                                                                                    
+---------- -------- --------- ---------                                                                                                               
+January    JAN      01-JAN-09 31-JAN-09                                                                                                               
+February   FEB      01-FEB-09 28-FEB-09                                                                                                               
+March      MAR      01-MAR-09 31-MAR-09                                                                                                               
+April      APR      01-APR-09 30-APR-09                                                                                                               
+May        MAY      01-MAY-09 31-MAY-09                                                                                                               
+June       JUN      01-JUN-09 30-JUN-09                                                                                                               
+July       JUL      01-JUL-09 31-JUL-09                                                                                                               
+August     AUG      01-AUG-09 31-AUG-09                                                                                                               
+September  SEP      01-SEP-09 30-SEP-09                                                                                                               
+October    OCT      01-OCT-09 31-OCT-09                                                                                                               
+November   NOV      01-NOV-09 30-NOV-09                                                                                                               
+December   DEC      01-DEC-09 31-DEC-09                                                                                                               
+
+12 rows selected.
+
+SQL> 
+SQL> -- --------------------------------------------------------------------------------
+SQL> --  Step #3 : Upload and transform data.
+SQL> -- --------------------------------------------------------------------------------
+SQL> 
+SQL> -- Conditionally drop table.
+SQL> SELECT 'Conditionally drop TRANSACTION_REVERSAL table.' AS "Statement" FROM dual;
+
+Statement                                                                                                                                             
+----------------------------------------------                                                                                                        
+Conditionally drop TRANSACTION_REVERSAL table.                                                                                                        
+
+1 row selected.
+
+SQL> BEGIN
+  2    FOR i IN (SELECT table_name
+  3  		 FROM	user_tables
+  4  		 WHERE	table_name = 'TRANSACTION_REVERSAL') LOOP
+  5  	 EXECUTE IMMEDIATE 'DROP TABLE '||i.table_name||' CASCADE CONSTRAINTS';
+  6    END LOOP;
+  7  END;
+  8  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- --------------------------------------------------------------------------------
+SQL> --  Step #3 : Upload and transform data.
+SQL> -- --------------------------------------------------------------------------------
+SQL> 
+SQL> -- --------------------------------------------------------------------------------
+SQL> --  Step #3 : Create the TRANSACTION_REVERSAL table.
+SQL> -- --------------------------------------------------------------------------------
+SQL> CREATE TABLE "STUDENT"."TRANSACTION_REVERSAL"
+  2  ( transaction_id		     NUMBER
+  3  , transaction_account	     VARCHAR2(15)
+  4  , transaction_type 	     NUMBER
+  5  , transaction_date 	     DATE
+  6  , transaction_amount	     FLOAT
+  7  , rental_id		     NUMBER
+  8  , payment_method_type	     NUMBER
+  9  , payment_account_number	     VARCHAR2(19)
+ 10  , created_by		     NUMBER
+ 11  , creation_date		     DATE
+ 12  , last_updated_by		     NUMBER
+ 13  , last_update_date 	     DATE)
+ 14  ORGANIZATION EXTERNAL
+ 15  	 ( TYPE ORACLE_LOADER
+ 16  	   DEFAULT DIRECTORY upload
+ 17  	   ACCESS PARAMETERS
+ 18  	   ( RECORDS DELIMITED BY NEWLINE CHARACTERSET US7ASCII
+ 19  	   BADFILE     'UPLOAD':'transaction_upload2.bad'
+ 20  	   DISCARDFILE 'UPLOAD':'transaction_upload2.dis'
+ 21  	   LOGFILE     'UPLOAD':'transaction_upload2.log'
+ 22  	   FIELDS TERMINATED BY ','
+ 23  	   OPTIONALLY ENCLOSED BY "'"
+ 24  	   MISSING FIELD VALUES ARE NULL )
+ 25  	   LOCATION
+ 26  	    ( 'transaction_upload2.csv'))
+ 27  REJECT LIMIT UNLIMITED;
+
+Table created.
+
+SQL> 
+SQL> -- Select the uploaded records.
+SQL> SELECT COUNT(*) FROM transaction_reversal;
+
+  COUNT(*)                                                                                                                                            
+----------                                                                                                                                            
+      1170                                                                                                                                            
+
+1 row selected.
+
+SQL> 
+SQL> -- Select the uploaded records.
+SQL> DELETE FROM transaction WHERE transaction_account = '222-222-222-222';
+
+0 rows deleted.
+
+SQL> 
+SQL> -- --------------------------------------------------------------------------------
+SQL> --  Step #3 : Insert records into the TRANSACTION_REVERSAL table.
+SQL> -- --------------------------------------------------------------------------------
+SQL> SET LONG 200000  -- Enables the display of the full statement.
+SP2-0158: unknown SET option "--"
+SQL> SELECT   dbms_metadata.get_ddl('TABLE','TRANSACTION_REVERSAL') AS "Table Description"
+  2  FROM     dual;
+
+Table Description                                                                                                                                     
+--------------------------------------------------------------------------------                                                                      
+                                                                                                                                                      
+  CREATE TABLE "STUDENT"."TRANSACTION_REVERSAL"                                                                                                       
+   (	"TRANSACTION_ID" NUMBER,                                                                                                                         
+	"TRANSACTION_ACCOUNT" VARCHAR2(15),                                                                                                                  
+	"TRANSACTION_TYPE" NUMBER,                                                                                                                           
+	"TRANSACTION_DATE" DATE,                                                                                                                             
+	"TRANSACTION_AMOUNT" FLOAT(126),                                                                                                                     
+	"RENTAL_ID" NUMBER,                                                                                                                                  
+	"PAYMENT_METHOD_TYPE" NUMBER,                                                                                                                        
+	"PAYMENT_ACCOUNT_NUMBER" VARCHAR2(19),                                                                                                               
+	"CREATED_BY" NUMBER,                                                                                                                                 
+	"CREATION_DATE" DATE,                                                                                                                                
+	"LAST_UPDATED_BY" NUMBER,                                                                                                                            
+	"LAST_UPDATE_DATE" DATE                                                                                                                              
+   )                                                                                                                                                  
+   ORGANIZATION EXTERNAL                                                                                                                              
+    ( TYPE ORACLE_LOADER                                                                                                                              
+      DEFAULT DIRECTORY "UPLOAD"                                                                                                                      
+      ACCESS PARAMETERS                                                                                                                               
+      ( RECORDS DELIMITED BY NEWLINE CHAR                                                                                                             
+ACTERSET US7ASCII                                                                                                                                     
+      BADFILE     'UPLOAD':'transaction_up                                                                                                            
+load2.bad'                                                                                                                                            
+      DISCARDFILE 'UPLOAD':'transaction_upload2.d                                                                                                     
+is'                                                                                                                                                   
+      LOGFILE     'UPLOAD':'transaction_upload2.log'                                                                                                  
+      FIELDS TERMINATED BY ','                                                                                                                        
+      OPTIONALLY ENCLOSED BY "'"                                                                                                                      
+      MISSING FIELD VALUES ARE NULL     )                                                                                                             
+      LOCATION                                                                                                                                        
+       ( 'transaction_upload2.csv'                                                                                                                    
+       )                                                                                                                                              
+    )                                                                                                                                                 
+   REJECT LIMIT UNLIMITED                                                                                                                             
+                                                                                                                                                      
+
+1 row selected.
+
+SQL> 
+SQL> -- Set a local variable of a character large object (CLOB).
+SQL> VARIABLE ddl_text CLOB
+SQL> 
+SQL> -- Get the internal DDL command for the TRANSACTION table from the data dictionary.
+SQL> SELECT dbms_metadata.get_ddl('TABLE','TRANSACTION') FROM dual;
+
+DBMS_METADATA.GET_DDL('TABLE','TRANSACTION')                                                                                                          
+--------------------------------------------------------------------------------                                                                      
+                                                                                                                                                      
+  CREATE TABLE "STUDENT"."TRANSACTION"                                                                                                                
+   (	"TRANSACTION_ID" NUMBER,                                                                                                                         
+	"TRANSACTION_ACCOUNT" VARCHAR2(15) CONSTRAINT "                                                                                                      
+NN_TRANSACTION_1" NOT NULL ENABLE,                                                                                                                    
+	"TRANSACTION_TYPE" NUMBER CONSTRAINT "NN_TR                                                                                                          
+ANSACTION_2" NOT NULL ENABLE,                                                                                                                         
+	"TRANSACTION_DATE" DATE CONSTRAINT "NN_TRANSACTI                                                                                                     
+ON_3" NOT NULL ENABLE,                                                                                                                                
+	"TRANSACTION_AMOUNT" FLOAT(126) CONSTRAINT "NN_TRANSACT                                                                                              
+ION_4" NOT NULL ENABLE,                                                                                                                               
+	"RENTAL_ID" NUMBER CONSTRAINT "NN_TRANSACTION_5" NOT N                                                                                               
+ULL ENABLE,                                                                                                                                           
+	"PAYMENT_METHOD_TYPE" NUMBER CONSTRAINT "NN_TR                                                                                                       
+ANSACTION_6" NOT NULL ENABLE,                                                                                                                         
+	"PAYMENT_ACCOUNT_NUMBER" VARCHAR2(19) CONSTRAINT                                                                                                     
+ "NN_TRANSACTION_7" NOT NULL ENABLE,                                                                                                                  
+	"CREATED_BY" NUMBER CONSTRAINT "NN_TRANSA                                                                                                            
+CTION_8" NOT NULL ENABLE,                                                                                                                             
+	"CREATION_DATE" DATE CONSTRAINT "NN_TRANSACTION_9" N                                                                                                 
+OT NULL ENABLE,                                                                                                                                       
+	"LAST_UPDATED_BY" NUMBER CONSTRAINT "NN_TR                                                                                                           
+ANSACTION_10" NOT NULL ENABLE,                                                                                                                        
+	"LAST_UPDATE_DATE" DATE CONSTRAINT "NN_TRANSACT                                                                                                      
+ION_11" NOT NULL ENABLE,                                                                                                                              
+	 CONSTRAINT "PK_TRANSACTION_1" PRIMARY KEY ("TRANSACT                                                                                                
+ION_ID")                                                                                                                                              
+  USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255                                                                                                      
+  STORAGE(INITIAL 65536 NEXT 1048576 MINE                                                                                                             
+XTENTS 1 MAXEXTENTS 2147483645                                                                                                                        
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUF                                                                                                     
+FER_POOL DEFAULT FLASH_CACHE DEFAULT CEL                                                                                                              
+L_FLASH_CACHE DEFAULT)                                                                                                                                
+  TABLESPACE "USERS"  ENABLE,                                                                                                                         
+	 CONSTRAINT "FK_TRANSACTION_1" FOREIGN KEY ("                                                                                                        
+TRANSACTION_TYPE")                                                                                                                                    
+	  REFERENCES "STUDENT"."COMMON_LOOKUP" (                                                                                                             
+"COMMON_LOOKUP_ID") ENABLE,                                                                                                                           
+	 CONSTRAINT "FK_TRANSACTION_3" FOREIGN KEY ("PAYME                                                                                                   
+NT_METHOD_TYPE")                                                                                                                                      
+	  REFERENCES "STUDENT"."COMMON_LOOKUP" ("C                                                                                                           
+OMMON_LOOKUP_ID") ENABLE,                                                                                                                             
+	 CONSTRAINT "FK_TRANSACTION_4" FOREIGN KEY ("CREATED                                                                                                 
+_BY")                                                                                                                                                 
+	  REFERENCES "STUDENT"."SYSTEM_USER" ("SYSTEM_USER_ID                                                                                                
+") ENABLE,                                                                                                                                            
+	 CONSTRAINT "FK_TRANSACTION_5" FOREIGN KEY ("LA                                                                                                      
+ST_UPDATED_BY")                                                                                                                                       
+	  REFERENCES "STUDENT"."SYSTEM_USER" ("SYST                                                                                                          
+EM_USER_ID") ENABLE                                                                                                                                   
+   ) SEGMENT CREATION IMMEDIATE                                                                                                                       
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255                                                                                                       
+ NOCOMPRESS LOGGING                                                                                                                                   
+  STORAGE(INITIAL 65536 NEXT 1048576 MIN                                                                                                              
+EXTENTS 1 MAXEXTENTS 2147483645                                                                                                                       
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BU                                                                                                      
+FFER_POOL DEFAULT FLASH_CACHE DEFAULT CE                                                                                                              
+LL_FLASH_CACHE DEFAULT)                                                                                                                               
+  TABLESPACE "USERS"                                                                                                                                  
+                                                                                                                                                      
+
+1 row selected.
+
+SQL> 
+SQL> -- Get the internal DDL command for the external TRANSACTION_UPLOAD table from the data dictionary.
+SQL> SELECT dbms_metadata.get_ddl('TABLE','TRANSACTION_UPLOAD') FROM dual;
+
+DBMS_METADATA.GET_DDL('TABLE','TRANSACTION_UPLOAD')                                                                                                   
+--------------------------------------------------------------------------------                                                                      
+                                                                                                                                                      
+  CREATE TABLE "STUDENT"."TRANSACTION_UPLOAD"                                                                                                         
+   (	"ACCOUNT_NUMBER" VARCHAR2(10),                                                                                                                   
+	"FIRST_NAME" VARCHAR2(20),                                                                                                                           
+	"MIDDLE_NAME" VARCHAR2(20),                                                                                                                          
+	"LAST_NAME" VARCHAR2(20),                                                                                                                            
+	"CHECK_OUT_DATE" DATE,                                                                                                                               
+	"RETURN_DATE" DATE,                                                                                                                                  
+	"RENTAL_ITEM_TYPE" VARCHAR2(12),                                                                                                                     
+	"TRANSACTION_TYPE" VARCHAR2(14),                                                                                                                     
+	"TRANSACTION_AMOUNT" NUMBER,                                                                                                                         
+	"TRANSACTION_DATE" DATE,                                                                                                                             
+	"ITEM_ID" NUMBER,                                                                                                                                    
+	"PAYMENT_METHOD_TYPE" VARCHAR2(14),                                                                                                                  
+	"PAYMENT_ACCOUNT_NUMBER" VARCHAR2(19)                                                                                                                
+   )                                                                                                                                                  
+   ORGANIZATION EXTERNAL                                                                                                                              
+    ( TYPE ORACLE_LOADER                                                                                                                              
+      DEFAULT DIRECTORY "UPLOAD"                                                                                                                      
+      ACCESS PARAMETERS                                                                                                                               
+      ( RECORDS DELIMITED BY NEWLINE CHARA                                                                                                            
+CTERSET US7ASCII                                                                                                                                      
+      BADFILE     'UPLOAD':'transaction_upl                                                                                                           
+oad.bad'                                                                                                                                              
+      DISCARDFILE 'UPLOAD':'transaction_upload.dis'                                                                                                   
+                                                                                                                                                      
+      LOGFILE     'UPLOAD':'transaction_upload.log'                                                                                                   
+      FIELDS TERMINATED BY ','                                                                                                                        
+      OPTIONALLY ENCLOSED BY "'"                                                                                                                      
+      MISSING FIELD VALUES ARE NULL     )                                                                                                             
+      LOCATION                                                                                                                                        
+       ( 'transaction_upload.csv'                                                                                                                     
+       )                                                                                                                                              
+    )                                                                                                                                                 
+   REJECT LIMIT UNLIMITED                                                                                                                             
+                                                                                                                                                      
+
+1 row selected.
+
+SQL> 
+SQL> INSERT INTO transaction
+  2  (SELECT transaction_s1.NEXTVAL
+  3  ,	     transaction_account
+  4  ,	     transaction_type
+  5  ,	     transaction_date
+  6  ,	     transaction_amount
+  7  ,	     rental_id
+  8  ,	     payment_method_type
+  9  ,	     payment_account_number
+ 10  ,	     created_by
+ 11  ,	     creation_date
+ 12  ,	     last_updated_by
+ 13  ,	     last_update_date
+ 14   FROM    transaction_reversal);
+
+1170 rows created.
+
+SQL> 
+SQL> -- --------------------------------------------------------------------------------
+SQL> --  Step #3 : Verify insert of records into the TRANSACTION table.
+SQL> -- --------------------------------------------------------------------------------
+SQL> COLUMN "Debit Transactions"  FORMAT A20
+SQL> COLUMN "Credit Transactions" FORMAT A20
+SQL> COLUMN "All Transactions"	  FORMAT A20
+SQL> SELECT   LPAD(TO_CHAR(c1.transaction_count,'99,999'),19,' ') AS "Debit Transactions"
+  2  ,	      LPAD(TO_CHAR(c2.transaction_count,'99,999'),19,' ') AS "Credit Transactions"
+  3  ,	      LPAD(TO_CHAR(c3.transaction_count,'99,999'),19,' ') AS "All Transactions"
+  4  FROM    (SELECT COUNT(*) AS transaction_count FROM transaction WHERE transaction_account = '111-111-111-111') c1 CROSS JOIN
+  5  	     (SELECT COUNT(*) AS transaction_count FROM transaction WHERE transaction_account = '222-222-222-222') c2 CROSS JOIN
+  6  	     (SELECT COUNT(*) AS transaction_count FROM transaction) c3;
+
+Debit Transactions   Credit Transactions  All Transactions                                                                                            
+-------------------- -------------------- --------------------                                                                                        
+              4,681                1,170                5,851                                                                                         
+
+1 row selected.
+
+SQL> 
+SQL> -- --------------------------------------------------------------------------------
+SQL> --  Step #4 : Query data.
+SQL> -- --------------------------------------------------------------------------------
+SQL> -- SQL*Plus formatting instructions.
+SQL> COLUMN Transaction FORMAT A15
+SQL> COLUMN January   FORMAT A10
+SQL> COLUMN February  FORMAT A10
+SQL> COLUMN March     FORMAT A10
+SQL> COLUMN F1Q       FORMAT A10
+SQL> COLUMN April     FORMAT A10
+SQL> COLUMN May       FORMAT A10
+SQL> COLUMN June      FORMAT A10
+SQL> COLUMN F2Q       FORMAT A10
+SQL> COLUMN July      FORMAT A10
+SQL> COLUMN August    FORMAT A10
+SQL> COLUMN September FORMAT A10
+SQL> COLUMN F3Q       FORMAT A10
+SQL> COLUMN October   FORMAT A10
+SQL> COLUMN November  FORMAT A10
+SQL> COLUMN December  FORMAT A10
+SQL> COLUMN F4Q       FORMAT A10
+SQL> COLUMN YTD       FORMAT A12
+SQL> 
+SQL> SET LINESIZE 210
+SQL> 
+SQL> -- Reassign column values.
+SQL> SELECT   transaction_account AS "Transaction"
+  2  ,	      january AS "Jan"
+  3  ,	      february AS "Feb"
+  4  ,	      march AS "Mar"
+  5  ,	      f1q AS "F1Q"
+  6  ,	      april AS "Apr"
+  7  ,	      may AS "May"
+  8  ,	      june AS "Jun"
+  9  ,	      f2q AS "F2Q"
+ 10  ,	      july AS "Jul"
+ 11  ,	      august AS "Aug"
+ 12  ,	      september AS "Sep"
+ 13  ,	      f3q AS "F3Q"
+ 14  ,	      october AS "Oct"
+ 15  ,	      november AS "Nov"
+ 16  ,	      december AS "Dec"
+ 17  ,	      f4q AS "F4Q"
+ 18  ,	      ytd AS "YTD"
+ 19  FROM (
+ 20  SELECT   CASE
+ 21  		WHEN t.transaction_account = '111-111-111-111' THEN 'Debit'
+ 22  		WHEN t.transaction_account = '222-222-222-222' THEN 'Credit'
+ 23  	      END AS "TRANSACTION_ACCOUNT"
+ 24  ,	      CASE
+ 25  		WHEN t.transaction_account = '111-111-111-111' THEN 1
+ 26  		WHEN t.transaction_account = '222-222-222-222' THEN 2
+ 27  	      END AS "SORTKEY"
+ 28  ,	      LPAD(TO_CHAR
+ 29  	     (SUM(CASE
+ 30  		    WHEN EXTRACT(MONTH FROM transaction_date) = 1 AND
+ 31  			 EXTRACT(YEAR FROM transaction_date) = 2009 THEN
+ 32  		      CASE
+ 33  			WHEN cl.common_lookup_type = 'DEBIT'
+ 34  			THEN t.transaction_amount
+ 35  			ELSE t.transaction_amount * -1
+ 36  		      END
+ 37  		  END),'99,999.00'),10,' ') AS "JANUARY"
+ 38  ,	     LPAD(TO_CHAR
+ 39  	     (SUM(CASE
+ 40  		     WHEN EXTRACT(MONTH FROM transaction_date) = 2
+ 41  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+ 42  		  THEN
+ 43  		     CASE
+ 44  			     WHEN cl.common_lookup_type = 'DEBIT'
+ 45  			     THEN t.transaction_amount
+ 46  			     ELSE t.transaction_amount * -1
+ 47  		     END
+ 48  		  END),'99,999.00'),10,' ') AS "FEBRUARY"
+ 49  ,	     LPAD(TO_CHAR
+ 50  	     (SUM(CASE
+ 51  		     WHEN EXTRACT(MONTH FROM transaction_date) = 3
+ 52  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+ 53  		  THEN
+ 54  		     CASE
+ 55  			     WHEN cl.common_lookup_type = 'DEBIT'
+ 56  			     THEN t.transaction_amount
+ 57  			     ELSE t.transaction_amount * -1
+ 58  		     END
+ 59  		  END),'99,999.00'),10,' ') AS "MARCH"
+ 60  ,	     LPAD(TO_CHAR
+ 61  	     (SUM(CASE
+ 62  		     WHEN EXTRACT(MONTH FROM transaction_date) IN (1, 2, 3)
+ 63  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+ 64  		  THEN
+ 65  		     CASE
+ 66  			     WHEN cl.common_lookup_type = 'DEBIT'
+ 67  			     THEN t.transaction_amount
+ 68  			     ELSE t.transaction_amount * -1
+ 69  		     END
+ 70  		  END),'99,999.00'),10,' ') AS "F1Q"
+ 71  ,	     LPAD(TO_CHAR
+ 72  	     (SUM(CASE
+ 73  		     WHEN EXTRACT(MONTH FROM transaction_date) = 4
+ 74  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+ 75  		  THEN
+ 76  		     CASE
+ 77  			     WHEN cl.common_lookup_type = 'DEBIT'
+ 78  			     THEN t.transaction_amount
+ 79  			     ELSE t.transaction_amount * -1
+ 80  		     END
+ 81  		  END),'99,999.00'),10,' ') AS "APRIL"
+ 82  ,	     LPAD(TO_CHAR
+ 83  	     (SUM(CASE
+ 84  		     WHEN EXTRACT(MONTH FROM transaction_date) = 5
+ 85  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+ 86  		  THEN
+ 87  		     CASE
+ 88  			     WHEN cl.common_lookup_type = 'DEBIT'
+ 89  			     THEN t.transaction_amount
+ 90  			     ELSE t.transaction_amount * -1
+ 91  		     END
+ 92  		  END),'99,999.00'),10,' ') AS "MAY"
+ 93  ,	     LPAD(TO_CHAR
+ 94  	     (SUM(CASE
+ 95  		     WHEN EXTRACT(MONTH FROM transaction_date) = 6
+ 96  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+ 97  		  THEN
+ 98  		     CASE
+ 99  			     WHEN cl.common_lookup_type = 'DEBIT'
+100  			     THEN t.transaction_amount
+101  			     ELSE t.transaction_amount * -1
+102  		     END
+103  		  END),'99,999.00'),10,' ') AS "JUNE"
+104  ,	     LPAD(TO_CHAR
+105  	     (SUM(CASE
+106  		     WHEN EXTRACT(MONTH FROM transaction_date) IN (4, 5, 6)
+107  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+108  		  THEN
+109  		     CASE
+110  			     WHEN cl.common_lookup_type = 'DEBIT'
+111  			     THEN t.transaction_amount
+112  			     ELSE t.transaction_amount * -1
+113  		     END
+114  		  END),'99,999.00'),10,' ') AS "F2Q"
+115  ,	     LPAD(TO_CHAR
+116  	     (SUM(CASE
+117  		     WHEN EXTRACT(MONTH FROM transaction_date) = 7
+118  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+119  		  THEN
+120  		     CASE
+121  			     WHEN cl.common_lookup_type = 'DEBIT'
+122  			     THEN t.transaction_amount
+123  			     ELSE t.transaction_amount * -1
+124  		     END
+125  		  END),'99,999.00'),10,' ') AS "JULY"
+126  ,	     LPAD(TO_CHAR
+127  	     (SUM(CASE
+128  		     WHEN EXTRACT(MONTH FROM transaction_date) = 8
+129  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+130  		  THEN
+131  		     CASE
+132  			     WHEN cl.common_lookup_type = 'DEBIT'
+133  			     THEN t.transaction_amount
+134  			     ELSE t.transaction_amount * -1
+135  		     END
+136  		  END),'99,999.00'),10,' ') AS "AUGUST"
+137  ,	     LPAD(TO_CHAR
+138  	     (SUM(CASE
+139  		     WHEN EXTRACT(MONTH FROM transaction_date) = 9
+140  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+141  		  THEN
+142  		     CASE
+143  			     WHEN cl.common_lookup_type = 'DEBIT'
+144  			     THEN t.transaction_amount
+145  			     ELSE t.transaction_amount * -1
+146  		     END
+147  		  END),'99,999.00'),10,' ') AS "SEPTEMBER"
+148  ,	     LPAD(TO_CHAR
+149  	     (SUM(CASE
+150  		     WHEN EXTRACT(MONTH FROM transaction_date) IN (7, 8, 9)
+151  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+152  		  THEN
+153  		     CASE
+154  			     WHEN cl.common_lookup_type = 'DEBIT'
+155  			     THEN t.transaction_amount
+156  			     ELSE t.transaction_amount * -1
+157  		     END
+158  		  END),'99,999.00'),10,' ') AS "F3Q"
+159  ,	     LPAD(TO_CHAR
+160  	     (SUM(CASE
+161  		     WHEN EXTRACT(MONTH FROM transaction_date) = 10
+162  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+163  		  THEN
+164  		     CASE
+165  			     WHEN cl.common_lookup_type = 'DEBIT'
+166  			     THEN t.transaction_amount
+167  			     ELSE t.transaction_amount * -1
+168  		     END
+169  		  END),'99,999.00'),10,' ') AS "OCTOBER"
+170  ,	     LPAD(TO_CHAR
+171  	     (SUM(CASE
+172  		     WHEN EXTRACT(MONTH FROM transaction_date) = 11
+173  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+174  		  THEN
+175  		     CASE
+176  			     WHEN cl.common_lookup_type = 'DEBIT'
+177  			     THEN t.transaction_amount
+178  			     ELSE t.transaction_amount * -1
+179  		     END
+180  		  END),'99,999.00'),10,' ') AS "NOVEMBER"
+181  ,	     LPAD(TO_CHAR
+182  	     (SUM(CASE
+183  		     WHEN EXTRACT(MONTH FROM transaction_date) = 12
+184  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+185  		  THEN
+186  		     CASE
+187  			     WHEN cl.common_lookup_type = 'DEBIT'
+188  			     THEN t.transaction_amount
+189  			     ELSE t.transaction_amount * -1
+190  		     END
+191  		  END),'99,999.00'),10,' ') AS "DECEMBER"
+192  ,	     LPAD(TO_CHAR
+193  	     (SUM(CASE
+194  		     WHEN EXTRACT(MONTH FROM transaction_date) IN (10, 11, 12)
+195  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+196  		  THEN
+197  		     CASE
+198  			     WHEN cl.common_lookup_type = 'DEBIT'
+199  			     THEN t.transaction_amount
+200  			     ELSE t.transaction_amount * -1
+201  		     END
+202  		  END),'99,999.00'),10,' ') AS "F4Q"
+203  ,	     LPAD(TO_CHAR
+204  	     (SUM(CASE
+205  		     WHEN EXTRACT(MONTH FROM transaction_date) IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+206  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+207  		  THEN
+208  		     CASE
+209  			     WHEN cl.common_lookup_type = 'DEBIT'
+210  			     THEN t.transaction_amount
+211  			     ELSE t.transaction_amount * -1
+212  		     END
+213  		  END),'99,999.00'),10,' ') AS "YTD"
+214  FROM     transaction t INNER JOIN common_lookup cl
+215  ON       t.transaction_type = cl.common_lookup_id
+216  WHERE    cl.common_lookup_table = 'TRANSACTION'
+217  AND      cl.common_lookup_column = 'TRANSACTION_TYPE'
+218  GROUP BY CASE
+219  		WHEN t.transaction_account = '111-111-111-111' THEN 'Debit'
+220  		WHEN t.transaction_account = '222-222-222-222' THEN 'Credit'
+221  	      END
+222  ,	      CASE
+223  		WHEN t.transaction_account = '111-111-111-111' THEN 1
+224  		WHEN t.transaction_account = '222-222-222-222' THEN 2
+225  	      END
+226  UNION ALL
+227  SELECT  'Total' AS "Account"
+228  ,	      3 AS "Sortkey"
+229  ,	      LPAD(TO_CHAR
+230  	     (SUM(CASE
+231  		    WHEN EXTRACT(MONTH FROM transaction_date) = 1 AND
+232  			 EXTRACT(YEAR FROM transaction_date) = 2009 THEN
+233  		      CASE
+234  			WHEN cl.common_lookup_type = 'DEBIT'
+235  			THEN t.transaction_amount
+236  			ELSE t.transaction_amount * -1
+237  		      END
+238  		  END),'99,999.00'),10,' ') AS "JANUARY"
+239  ,	     LPAD(TO_CHAR
+240  	     (SUM(CASE
+241  		     WHEN EXTRACT(MONTH FROM transaction_date) = 2
+242  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+243  		  THEN
+244  		     CASE
+245  			     WHEN cl.common_lookup_type = 'DEBIT'
+246  			     THEN t.transaction_amount
+247  			     ELSE t.transaction_amount * -1
+248  		     END
+249  		  END),'99,999.00'),10,' ') AS "FEBRUARY"
+250  ,	     LPAD(TO_CHAR
+251  	     (SUM(CASE
+252  		     WHEN EXTRACT(MONTH FROM transaction_date) = 3
+253  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+254  		  THEN
+255  		     CASE
+256  			     WHEN cl.common_lookup_type = 'DEBIT'
+257  			     THEN t.transaction_amount
+258  			     ELSE t.transaction_amount * -1
+259  		     END
+260  		  END),'99,999.00'),10,' ') AS "MARCH"
+261  ,	     LPAD(TO_CHAR
+262  	     (SUM(CASE
+263  		     WHEN EXTRACT(MONTH FROM transaction_date) IN (1, 2, 3)
+264  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+265  		  THEN
+266  		     CASE
+267  			     WHEN cl.common_lookup_type = 'DEBIT'
+268  			     THEN t.transaction_amount
+269  			     ELSE t.transaction_amount * -1
+270  		     END
+271  		  END),'99,999.00'),10,' ') AS "F1Q"
+272  ,	     LPAD(TO_CHAR
+273  	     (SUM(CASE
+274  		     WHEN EXTRACT(MONTH FROM transaction_date) = 4
+275  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+276  		  THEN
+277  		     CASE
+278  			     WHEN cl.common_lookup_type = 'DEBIT'
+279  			     THEN t.transaction_amount
+280  			     ELSE t.transaction_amount * -1
+281  		     END
+282  		  END),'99,999.00'),10,' ') AS "APRIL"
+283  ,	     LPAD(TO_CHAR
+284  	     (SUM(CASE
+285  		     WHEN EXTRACT(MONTH FROM transaction_date) = 5
+286  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+287  		  THEN
+288  		     CASE
+289  			     WHEN cl.common_lookup_type = 'DEBIT'
+290  			     THEN t.transaction_amount
+291  			     ELSE t.transaction_amount * -1
+292  		     END
+293  		  END),'99,999.00'),10,' ') AS "MAY"
+294  ,	     LPAD(TO_CHAR
+295  	     (SUM(CASE
+296  		     WHEN EXTRACT(MONTH FROM transaction_date) = 6
+297  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+298  		  THEN
+299  		     CASE
+300  			     WHEN cl.common_lookup_type = 'DEBIT'
+301  			     THEN t.transaction_amount
+302  			     ELSE t.transaction_amount * -1
+303  		     END
+304  		  END),'99,999.00'),10,' ') AS "JUNE"
+305  ,	     LPAD(TO_CHAR
+306  	     (SUM(CASE
+307  		     WHEN EXTRACT(MONTH FROM transaction_date) IN (4, 5, 6)
+308  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+309  		  THEN
+310  		     CASE
+311  			     WHEN cl.common_lookup_type = 'DEBIT'
+312  			     THEN t.transaction_amount
+313  			     ELSE t.transaction_amount * -1
+314  		     END
+315  		  END),'99,999.00'),10,' ') AS "F2Q"
+316  ,	     LPAD(TO_CHAR
+317  	     (SUM(CASE
+318  		     WHEN EXTRACT(MONTH FROM transaction_date) = 7
+319  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+320  		  THEN
+321  		     CASE
+322  			     WHEN cl.common_lookup_type = 'DEBIT'
+323  			     THEN t.transaction_amount
+324  			     ELSE t.transaction_amount * -1
+325  		     END
+326  		  END),'99,999.00'),10,' ') AS "JULY"
+327  ,	     LPAD(TO_CHAR
+328  	     (SUM(CASE
+329  		     WHEN EXTRACT(MONTH FROM transaction_date) = 8
+330  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+331  		  THEN
+332  		     CASE
+333  			     WHEN cl.common_lookup_type = 'DEBIT'
+334  			     THEN t.transaction_amount
+335  			     ELSE t.transaction_amount * -1
+336  		     END
+337  		  END),'99,999.00'),10,' ') AS "AUGUST"
+338  ,	     LPAD(TO_CHAR
+339  	     (SUM(CASE
+340  		     WHEN EXTRACT(MONTH FROM transaction_date) = 9
+341  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+342  		  THEN
+343  		     CASE
+344  			     WHEN cl.common_lookup_type = 'DEBIT'
+345  			     THEN t.transaction_amount
+346  			     ELSE t.transaction_amount * -1
+347  		     END
+348  		  END),'99,999.00'),10,' ') AS "SEPTEMBER"
+349  ,	     LPAD(TO_CHAR
+350  	     (SUM(CASE
+351  		     WHEN EXTRACT(MONTH FROM transaction_date) IN (7, 8, 9)
+352  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+353  		  THEN
+354  		     CASE
+355  			     WHEN cl.common_lookup_type = 'DEBIT'
+356  			     THEN t.transaction_amount
+357  			     ELSE t.transaction_amount * -1
+358  		     END
+359  		  END),'99,999.00'),10,' ') AS "F3Q"
+360  ,	     LPAD(TO_CHAR
+361  	     (SUM(CASE
+362  		     WHEN EXTRACT(MONTH FROM transaction_date) = 10
+363  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+364  		  THEN
+365  		     CASE
+366  			     WHEN cl.common_lookup_type = 'DEBIT'
+367  			     THEN t.transaction_amount
+368  			     ELSE t.transaction_amount * -1
+369  		     END
+370  		  END),'99,999.00'),10,' ') AS "OCTOBER"
+371  ,	     LPAD(TO_CHAR
+372  	     (SUM(CASE
+373  		     WHEN EXTRACT(MONTH FROM transaction_date) = 11
+374  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+375  		  THEN
+376  		     CASE
+377  			     WHEN cl.common_lookup_type = 'DEBIT'
+378  			     THEN t.transaction_amount
+379  			     ELSE t.transaction_amount * -1
+380  		     END
+381  		  END),'99,999.00'),10,' ') AS "NOVEMBER"
+382  ,	     LPAD(TO_CHAR
+383  	     (SUM(CASE
+384  		     WHEN EXTRACT(MONTH FROM transaction_date) = 12
+385  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+386  		  THEN
+387  		     CASE
+388  			     WHEN cl.common_lookup_type = 'DEBIT'
+389  			     THEN t.transaction_amount
+390  			     ELSE t.transaction_amount * -1
+391  		     END
+392  		  END),'99,999.00'),10,' ') AS "DECEMBER"
+393  ,	     LPAD(TO_CHAR
+394  	     (SUM(CASE
+395  		     WHEN EXTRACT(MONTH FROM transaction_date) IN (10, 11, 12)
+396  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+397  		  THEN
+398  		     CASE
+399  			     WHEN cl.common_lookup_type = 'DEBIT'
+400  			     THEN t.transaction_amount
+401  			     ELSE t.transaction_amount * -1
+402  		     END
+403  		  END),'99,999.00'),10,' ') AS "F4Q"
+404  ,	     LPAD(TO_CHAR
+405  	     (SUM(CASE
+406  		     WHEN EXTRACT(MONTH FROM transaction_date) IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+407  		     AND EXTRACT(YEAR FROM transaction_date) = 2009
+408  		  THEN
+409  		     CASE
+410  			     WHEN cl.common_lookup_type = 'DEBIT'
+411  			     THEN t.transaction_amount
+412  			     ELSE t.transaction_amount * -1
+413  		     END
+414  		  END),'99,999.00'),10,' ') AS "YTD"
+415  FROM     transaction t INNER JOIN common_lookup cl
+416  ON       t.transaction_type = cl.common_lookup_id
+417  WHERE    cl.common_lookup_table = 'TRANSACTION'
+418  AND      cl.common_lookup_column = 'TRANSACTION_TYPE'
+419  GROUP BY 'Total'
+420  ORDER BY 2);
+
+Transaction Jan        Feb        Mar        F1Q        Apr        May        Jun        F2Q        Jul        Aug        Sep        F3Q        Oct        Nov        Dec        F4Q        YTD
+----------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+Debit         2,520.00   4,029.00   5,067.00  11,616.00   4,653.00   2,091.00   1,140.00   7,884.00   2,268.00   2,115.00   2,073.00   6,456.00   3,090.00   2,949.00   2,208.00   8,247.00  34,203.00
+Credit         -651.00    -996.00  -1,326.00  -2,973.00  -1,125.00    -522.00    -282.00  -1,929.00    -570.00    -522.00    -549.00  -1,641.00    -825.00    -786.00    -567.00  -2,178.00  -8,721.00
+Total         1,869.00   3,033.00   3,741.00   8,643.00   3,528.00   1,569.00     858.00   5,955.00   1,698.00   1,593.00   1,524.00   4,815.00   2,265.00   2,163.00   1,641.00   6,069.00  25,482.00   
+
+3 rows selected.
+
+SQL> 
+SQL> SPOOL OFF
